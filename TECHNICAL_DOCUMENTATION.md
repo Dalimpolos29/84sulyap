@@ -27,6 +27,8 @@
 - Git: Installed via winget
   - Configured with user.name="Dennis Alimpolos"
   - Configured with user.email="mr.dennisalimpolos@gmail.com"
+  - Repository: https://github.com/Dalimpolos29/sulyap84.git
+  - SSH authentication configured
 - VS Code: Installed via winget
 - All tools verified and working in development environment
 
