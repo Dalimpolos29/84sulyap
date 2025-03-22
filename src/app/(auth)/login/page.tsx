@@ -559,7 +559,6 @@ export default function LoginSignupPage() {
                 height={48}
                 className="rounded-full object-cover"
                 priority
-                unoptimized
               />
             </div>
             <span className="font-serif font-bold text-xl">Sulyap84</span>
@@ -581,7 +580,6 @@ export default function LoginSignupPage() {
                 height={128}
                 className="rounded-full object-cover"
                 priority
-                unoptimized
               />
             </div>
           </div>
