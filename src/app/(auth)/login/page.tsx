@@ -1036,17 +1036,15 @@ export default function LoginSignupPage() {
                     <div className="relative">
                       <input
                         id="email"
+                        name="email"
+                        className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200 border-[#7D1A1D]"
+                        required
                         type="email"
                         value={email}
                         onChange={handleEmailChange}
                         onFocus={() => setEmailFocused(true)}
                         onBlur={() => setEmailFocused(false)}
-                        className={cn(
-                          "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
-                          emailFocused || email ? "border-[#7D1A1D]" : "border-gray-300",
-                          emailError ? "border-red-500" : "",
-                        )}
-                        required
+                        autoComplete="email"
                       />
                       <label
                         htmlFor="email"

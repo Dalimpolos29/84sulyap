@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    domains: ['sulyap.dabcas.uk'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'sulyap.dabcas.uk',
       },
     ],
     dangerouslyAllowSVG: true,
