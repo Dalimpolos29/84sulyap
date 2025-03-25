@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
-export default function AuthSuccess() {
+// Create a client component that uses the search params
+function EmailVerificationContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [timeLeft, setTimeLeft] = useState(5)
@@ -107,5 +108,18 @@ export default function AuthSuccess() {
         </p>
       </div>
     </div>
+  )
+}
+
+// Use suspense boundary for the main page component
+export default function AuthSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    }>
+      <EmailVerificationContent />
+    </Suspense>
   )
 } 
