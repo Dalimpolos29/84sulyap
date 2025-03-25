@@ -29,15 +29,9 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  // If user is not signed in and the current path is not /login,
-  // redirect the user to /login
-  if (!session && request.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // If user is signed in and the current path is /login,
-  // redirect the user to /
-  if (session && request.nextUrl.pathname === '/login') {
+  // Only protect non-auth routes that require authentication
+  // Root URL (/) will be handled by the page component itself
+  if (!session && !request.nextUrl.pathname.startsWith('/(auth)') && request.nextUrl.pathname !== '/') {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
@@ -46,5 +40,8 @@ export async function middleware(request: NextRequest) {
 
 // Ensure middleware runs only on the pages we want it to
 export const config = {
-  matcher: ['/', '/login']
+  matcher: [
+    // Protect all routes except auth routes and static files
+    '/((?!auth|_next/static|_next/image|icons|images).*)',
+  ]
 } 

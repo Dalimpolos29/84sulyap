@@ -330,7 +330,7 @@ export default function LoginSignupPage() {
               birthday,
               phone_number: `${countryCode}${phoneNumber}`,
             },
-            emailRedirectTo: `${window.location.origin}/auth-success?next=auth-success`,
+            emailRedirectTo: window.location.origin,
           },
         })
 
@@ -374,7 +374,7 @@ export default function LoginSignupPage() {
           throw new Error("No account found with this email address")
         }
 
-        // Send OTP using signInWithOtp instead of resetPasswordForEmail
+        // Send OTP using signInWithOtp
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
@@ -412,10 +412,15 @@ export default function LoginSignupPage() {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'recovery'
+        type: 'email'
       })
 
       if (error) throw error
+
+      // Store the session data for password update
+      if (data?.session) {
+        await supabase.auth.setSession(data.session)
+      }
 
       setIsVerified(true)
       setError("")
