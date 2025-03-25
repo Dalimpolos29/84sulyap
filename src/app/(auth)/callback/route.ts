@@ -6,77 +6,42 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const next = requestUrl.searchParams.get('next') || '/dashboard'
+  const type = requestUrl.searchParams.get('type') || 'signup'
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (!error) {
-      return new NextResponse(
-        `<!DOCTYPE html>
-        <html>
-          <head>
-            <title>Email Verification Successful</title>
-            <style>
-              body {
-                font-family: system-ui, -apple-system, sans-serif;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-                background-color: #f9fafb;
-              }
-              .container {
-                background-color: white;
-                padding: 2rem;
-                border-radius: 0.5rem;
-                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-                text-align: center;
-              }
-              .title {
-                color: #111827;
-                font-size: 1.5rem;
-                font-weight: bold;
-                margin-bottom: 1rem;
-              }
-              .message {
-                color: #6b7280;
-                margin-bottom: 1.5rem;
-              }
-              .countdown {
-                color: #4f46e5;
-                font-weight: 500;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h2 class="title">Email Verified Successfully!</h2>
-              <p class="message">Your email has been verified.</p>
-              <p class="countdown">Redirecting in <span id="timer">3</span> seconds...</p>
-            </div>
+    try {
+      const cookieStore = cookies()
+      const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+      
+      // Exchange the auth code for a session
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (!error && data.session) {
+        // Get the target URL to redirect to after authentication
+        const redirectTo = type === 'recovery' ? '/reset-password' : '/auth-success'
 
-            <script>
-              let timeLeft = 3;
-              const timerElement = document.getElementById('timer');
-              
-              const countdown = setInterval(() => {
-                timeLeft--;
-                timerElement.textContent = timeLeft;
-                
-                if (timeLeft <= 0) {
-                  clearInterval(countdown);
-                  window.location.href = '/';
-                }
-              }, 1000);
-            </script>
-          </body>
-        </html>`,
-        {
-          headers: { 'Content-Type': 'text/html' },
+        // Set the auth cookie manually to ensure it's properly saved
+        await supabase.auth.setSession(data.session)
+
+        // Redirect to the auth-success page with the necessary params
+        return NextResponse.redirect(new URL(`${redirectTo}?next=auth-success`, request.url))
+      } else {
+        // Handle known errors
+        let errorMessage = "This verification link has expired or has already been used."
+        if (error?.message) {
+          errorMessage = error.message
         }
-      )
+
+        // Redirect to login page with error
+        return NextResponse.redirect(
+          new URL(`/login?error=${encodeURIComponent(errorMessage)}`, request.url)
+        )
+      }
+    } catch (error: any) {
+      console.error("Authentication error:", error.message);
+      // If there's an exception, redirect to login
+      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
 

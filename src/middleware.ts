@@ -31,7 +31,11 @@ export async function middleware(request: NextRequest) {
 
   // Only protect non-auth routes that require authentication
   // Root URL (/) will be handled by the page component itself
-  if (!session && !request.nextUrl.pathname.startsWith('/(auth)') && request.nextUrl.pathname !== '/') {
+  if (!session && 
+      !request.nextUrl.pathname.startsWith('/(auth)') && 
+      !request.nextUrl.pathname.startsWith('/callback') &&
+      !request.nextUrl.pathname.startsWith('/auth-success') && 
+      request.nextUrl.pathname !== '/') {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
@@ -42,6 +46,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Protect all routes except auth routes and static files
-    '/((?!auth|_next/static|_next/image|icons|images).*)',
+    '/((?!auth|_next/static|_next/image|icons|images|callback|auth-success).*)',
   ]
 } 
