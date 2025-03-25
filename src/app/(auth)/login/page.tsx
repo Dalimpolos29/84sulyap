@@ -422,7 +422,10 @@ export default function LoginSignupPage() {
         await supabase.auth.setSession(data.session)
       }
 
+      // Make sure we correctly set the verified state
       setIsVerified(true)
+      // Also update the isResetPassword state to ensure proper UI transition
+      setIsResetPassword(true)
       setError("")
       setSuccess("Code verified successfully. Please set your new password.")
     } catch (error: any) {
@@ -461,6 +464,7 @@ export default function LoginSignupPage() {
       // Keep isVerified true until redirect to prevent email input from showing
       setTimeout(() => {
         setIsForgotPassword(false)
+        setIsResetPassword(false)
         setIsVerified(false)
         setIsLogin(true)
         setPassword("")
@@ -496,6 +500,7 @@ export default function LoginSignupPage() {
 
   const toggleForgotPassword = () => {
     setIsForgotPassword(!isForgotPassword)
+    setIsResetPassword(false)
     setIsVerified(false)
     setIsLogin(true)
     // Reset form and messages
