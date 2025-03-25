@@ -553,7 +553,7 @@ export default function LoginSignupPage() {
           <Link href="/" className="flex items-center gap-2">
             <div className="relative w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border border-[#C9A335] shadow-md">
               <Image
-                src="/images/logo.svg"
+                src="/images/logo.svg?url"
                 alt="UPIS 84 Logo"
                 width={48}
                 height={48}
@@ -574,7 +574,7 @@ export default function LoginSignupPage() {
           <div className="text-center mb-0 relative z-10">
             <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden flex items-center justify-center border-2 border-[#C9A335] bg-white shadow-lg">
               <Image
-                src="/images/logo.svg"
+                src="/images/logo.svg?url"
                 alt="UPIS 84 Logo"
                 width={128}
                 height={128}
