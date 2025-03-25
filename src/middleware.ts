@@ -42,6 +42,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Protect all routes except auth routes and static files
-    '/((?!auth|_next/static|_next/image|icons).*)',
+    '/((?!auth|_next/static|_next/image|icons|images).*)',
   ]
 } 
