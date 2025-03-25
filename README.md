@@ -27,4 +27,10 @@ This project is automatically deployed to Vercel when changes are pushed to the 
 1. Clone the repository
 2. Install dependencies with `npm install`
 3. Set up environment variables
-4. Run the development server with `npm run dev` 
+4. Run the development server with `npm run dev`
+
+## Environments
+- Production: [production-url]
+- Staging: [staging-url]
+
+This branch is for staging environment testing. 
