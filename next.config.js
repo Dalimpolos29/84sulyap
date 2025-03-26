@@ -16,6 +16,20 @@ const nextConfig = {
       use: ['@svgr/webpack']
     });
     return config;
+  },
+  // Add cache control headers to prevent browser caching issues
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ]
   }
 }
 
