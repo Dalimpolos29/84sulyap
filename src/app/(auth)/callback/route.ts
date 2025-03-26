@@ -18,14 +18,21 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
       
       if (!error && data.session) {
-        // Get the target URL to redirect to after authentication
-        const redirectTo = type === 'recovery' ? '/reset-password' : '/auth-success'
+        // Determine where to redirect based on the authentication type
+        let redirectTo = '/'
+        
+        if (type === 'recovery') {
+          redirectTo = '/reset-password'
+        } else if (type === 'signup') {
+          // For signup (email verification), redirect to our verification page
+          redirectTo = '/verify-email?type=signup'
+        }
 
         // Set the auth cookie manually to ensure it's properly saved
         await supabase.auth.setSession(data.session)
 
-        // Redirect to the auth-success page with the necessary params
-        return NextResponse.redirect(new URL(`${redirectTo}?next=auth-success`, request.url))
+        // Redirect to the appropriate page
+        return NextResponse.redirect(new URL(redirectTo, request.url))
       } else {
         // Handle known errors
         let errorMessage = "This verification link has expired or has already been used."

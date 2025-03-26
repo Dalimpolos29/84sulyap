@@ -383,7 +383,7 @@ export default function LoginSignupPage() {
               birthday,
               phone_number: `${countryCode}${phoneNumber}`,
             },
-            emailRedirectTo: `${window.location.origin}/auth-success?next=auth-success`,
+            emailRedirectTo: `${window.location.origin}/verify-email`,
           },
         })
 
