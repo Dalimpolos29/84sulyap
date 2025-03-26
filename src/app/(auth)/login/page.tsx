@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AlertCircle, CheckCircle, Loader2, ChevronDown } from "lucide-react"
@@ -66,7 +65,6 @@ export default function LoginSignupPage() {
   const supabase = createClient()
 
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
   
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -300,10 +298,9 @@ export default function LoginSignupPage() {
 
         if (error) throw error
 
-        // Set success message and use router for navigation
+        // Set success message and immediately redirect
         setSuccess("Login successful!")
-        router.refresh() // Clear router cache
-        router.push("/") // Navigate to dashboard
+        window.location.href = "/"
       } else {
         // Double-check email availability before signup
         const { error: checkError } = await supabase.auth.signInWithOtp({
