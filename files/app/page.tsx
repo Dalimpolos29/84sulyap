@@ -20,29 +20,32 @@ export default function RootPage() {
     checkSession()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       if (!session) {
-        // If session is null (signed out), redirect to login
-        window.location.replace('/login')
+        // Clear router cache and redirect
+        router.refresh() // Clear Next.js cache
+        router.replace('/login')
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [router])
 
-  // Handle sign out with history clearing
+  // Handle sign out with proper cache clearing
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
       // Clear session state
       setSession(null)
-      // Force navigation and clear history
-      window.location.replace('/login')
+      // Clear router cache and force navigation
+      router.refresh()
+      router.replace('/login')
     } catch (error) {
       console.error('Error signing out:', error)
-      // Fallback redirect
-      window.location.href = '/login'
+      // Fallback redirect with cache clearing
+      router.refresh()
+      router.replace('/login')
     }
   }
 
