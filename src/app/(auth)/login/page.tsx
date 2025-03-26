@@ -10,8 +10,10 @@ import { AlertCircle, CheckCircle, Loader2, ChevronDown } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import { debounce } from "lodash"
+import { useRouter } from "next/navigation"
 
 export default function LoginSignupPage() {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [isResetPassword, setIsResetPassword] = useState(false)
@@ -249,7 +251,7 @@ export default function LoginSignupPage() {
 
     // Additional validations for signup
     if (!isLogin) {
-      // Validate name fields
+      // Validate required fields
       if (!firstName || !lastName) {
         setError("First name and last name are required")
         return
@@ -257,13 +259,7 @@ export default function LoginSignupPage() {
 
       // Validate birthday
       if (!validateBirthday(birthday)) {
-        setBirthdayError("Birth year must be between 1945-1972 for Batch '84")
-        return
-      }
-
-      // Validate phone number
-      if (!validatePhoneNumber(phoneNumber)) {
-        setPhoneNumberError("Please enter a valid phone number")
+        setBirthdayError("Please enter a valid birth date in MM-DD-YYYY format (1945-1972)")
         return
       }
 
@@ -300,7 +296,7 @@ export default function LoginSignupPage() {
 
         // Set success message and immediately redirect
         setSuccess("Login successful!")
-        window.location.href = "/"
+        router.replace("/")
       } else {
         // Double-check email availability before signup
         const { error: checkError } = await supabase.auth.signInWithOtp({
@@ -468,6 +464,9 @@ export default function LoginSignupPage() {
         setError("")
         setPasswordError("")
         setSuccess("")
+        
+        // Navigate to login page to ensure proper state reset
+        router.replace('/login')
       }, 2000)
     } catch (error: any) {
       console.error("Password reset error:", error)
