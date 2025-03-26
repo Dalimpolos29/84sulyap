@@ -22,6 +22,10 @@ export default function RootPage() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      if (!session) {
+        // If session is null (signed out), redirect to login
+        window.location.replace('/login')
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -33,12 +37,12 @@ export default function RootPage() {
       await supabase.auth.signOut()
       // Clear session state
       setSession(null)
-      // Force a hard refresh to base URL
-      window.location.href = '/'
-      // Prevent any further execution
-      return
+      // Force navigation and clear history
+      window.location.replace('/login')
     } catch (error) {
       console.error('Error signing out:', error)
+      // Fallback redirect
+      window.location.href = '/login'
     }
   }
 
