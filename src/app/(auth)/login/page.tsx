@@ -453,7 +453,10 @@ export default function LoginSignupPage() {
       setError("")
       setSuccess("Password updated successfully! Please sign in with your new password.")
       
-      // Keep isVerified true until redirect to prevent email input from showing
+      // Sign out the user after successful password reset
+      await supabase.auth.signOut()
+      
+      // Reset form after successful password update
       setTimeout(() => {
         setIsForgotPassword(false)
         setIsVerified(false)
