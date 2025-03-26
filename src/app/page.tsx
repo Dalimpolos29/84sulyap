@@ -28,12 +28,12 @@ export default function RootPage() {
     return () => subscription.unsubscribe()
   }, [])
   
-  // Add effect for navigation after successful sign-out
+  // Keep this for compatibility, but we'll use a more robust approach
   useEffect(() => {
     if (signoutSuccess) {
       const timer = setTimeout(() => {
         router.replace('/login')
-      }, 1000) // 1 second delay
+      }, 1000)
       return () => clearTimeout(timer)
     }
   }, [signoutSuccess, router])
@@ -51,12 +51,50 @@ export default function RootPage() {
     return <LoginPage />
   }
 
-  // Handle sign out
+  // Enhanced sign out with retry logic
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    setSignoutSuccess(true)
-    // Remove the direct navigation
-    // router.replace('/login')
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut()
+      
+      // Verify the sign-out was successful
+      let attempts = 0
+      const maxAttempts = 3
+      
+      const checkAndNavigate = async () => {
+        attempts++
+        try {
+          // Check if session is null (sign out successful)
+          const { data } = await supabase.auth.getSession()
+          
+          if (!data.session) {
+            // Session is confirmed to be gone, navigate
+            window.location.href = '/login'
+          } else if (attempts < maxAttempts) {
+            // Try again after a delay
+            setTimeout(checkAndNavigate, 500)
+          } else {
+            // Last resort fallback
+            window.location.href = '/login'
+          }
+        } catch (err) {
+          console.error("Session check error:", err)
+          // Fallback if there's an error checking session
+          if (attempts < maxAttempts) {
+            setTimeout(checkAndNavigate, 500)
+          } else {
+            window.location.href = '/login'
+          }
+        }
+      }
+      
+      // Start the check process
+      checkAndNavigate()
+    } catch (error) {
+      console.error("Sign out error:", error)
+      // Fallback if sign out fails
+      window.location.href = '/login'
+    }
   }
 
   // If authenticated, show dashboard content

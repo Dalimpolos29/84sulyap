@@ -46,6 +46,7 @@ export default function LoginSignupPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loginSuccess, setLoginSuccess] = useState(false)
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false)
 
   // Validation errors
   const [emailError, setEmailError] = useState("")
@@ -65,9 +66,6 @@ export default function LoginSignupPage() {
   const [emailAvailable, setEmailAvailable] = useState(false)
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
 
-  // Add a resetPasswordSuccess state near the top with other state variables
-  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false)
-
   const supabase = createClient()
 
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -86,22 +84,21 @@ export default function LoginSignupPage() {
     }
   }, [])
 
-  // Add useEffect for navigation after successful login
+  // Keeping these effects for compatibility, but we'll use a more robust approach in the submit handler
   useEffect(() => {
     if (loginSuccess) {
       const timer = setTimeout(() => {
         router.replace('/')
-      }, 1500) // 1.5 second delay to show success message
+      }, 1500)
       return () => clearTimeout(timer)
     }
   }, [loginSuccess, router])
 
-  // Add useEffect for navigation after successful password reset
   useEffect(() => {
     if (resetPasswordSuccess) {
       const timer = setTimeout(() => {
         router.replace('/login')
-      }, 2000) // 2 second delay
+      }, 2000)
       return () => clearTimeout(timer)
     }
   }, [resetPasswordSuccess, router])
@@ -319,9 +316,41 @@ export default function LoginSignupPage() {
 
         if (error) throw error
 
-        // Set success message and set loginSuccess to true to trigger navigation
         setSuccess("Login successful!")
-        setLoginSuccess(true)
+        
+        // Enhanced navigation with retry logic
+        let attempts = 0
+        const maxAttempts = 3
+        
+        const checkAndNavigate = async () => {
+          attempts++
+          try {
+            // Verify the session is available
+            const { data } = await supabase.auth.getSession()
+            
+            if (data.session) {
+              // Session is confirmed, navigate
+              window.location.href = '/'
+            } else if (attempts < maxAttempts) {
+              // Try again after a delay
+              setTimeout(checkAndNavigate, 500)
+            } else {
+              // Last resort fallback
+              window.location.href = '/'
+            }
+          } catch (err) {
+            console.error("Session check error:", err)
+            // Fallback if there's an error checking session
+            if (attempts < maxAttempts) {
+              setTimeout(checkAndNavigate, 500)
+            } else {
+              window.location.href = '/'
+            }
+          }
+        }
+        
+        // Start the check process after showing success message
+        setTimeout(checkAndNavigate, 1000)
       } else {
         // Double-check email availability before signup
         const { error: checkError } = await supabase.auth.signInWithOtp({
@@ -477,7 +506,7 @@ export default function LoginSignupPage() {
       // Sign out the user after successful password reset
       await supabase.auth.signOut()
       
-      // Reset form after successful password update
+      // Reset form
       setIsForgotPassword(false)
       setIsVerified(false)
       setIsLogin(true)
@@ -488,8 +517,38 @@ export default function LoginSignupPage() {
       setError("")
       setPasswordError("")
       
-      // Set resetPasswordSuccess to trigger navigation
-      setResetPasswordSuccess(true)
+      // Enhanced navigation with delay to show success message
+      setTimeout(() => {
+        // Verify the sign-out was successful
+        let attempts = 0
+        const maxAttempts = 3
+        
+        const checkAndNavigate = async () => {
+          attempts++
+          try {
+            // Check if session is null (sign out successful)
+            const { data } = await supabase.auth.getSession()
+            
+            if (!data.session) {
+              // Session is confirmed to be gone, navigate
+              window.location.href = '/login'
+            } else if (attempts < maxAttempts) {
+              // Try again after a delay
+              setTimeout(checkAndNavigate, 500)
+            } else {
+              // Last resort fallback
+              window.location.href = '/login'
+            }
+          } catch (err) {
+            console.error("Session check error:", err)
+            // Fallback if there's an error checking session
+            window.location.href = '/login'
+          }
+        }
+        
+        // Start the check process
+        checkAndNavigate()
+      }, 2000) // 2 second delay to show success message
     } catch (error: any) {
       console.error("Password reset error:", error)
       setError(error.message || "Failed to update password. Please try again.")
