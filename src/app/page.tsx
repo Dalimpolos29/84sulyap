@@ -1,5 +1,8 @@
 'use client'
 
+// Enhanced dashboard with robust session handling and sign-out flow
+// This implementation ensures proper session verification before navigation
+
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -9,6 +12,7 @@ export default function RootPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
+  const [signoutSuccess, setSignoutSuccess] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -26,6 +30,16 @@ export default function RootPage() {
 
     return () => subscription.unsubscribe()
   }, [])
+  
+  // Keep this for compatibility, but we'll use a more robust approach
+  useEffect(() => {
+    if (signoutSuccess) {
+      const timer = setTimeout(() => {
+        router.replace('/login')
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [signoutSuccess, router])
 
   if (isLoading) {
     return (
@@ -40,6 +54,52 @@ export default function RootPage() {
     return <LoginPage />
   }
 
+  // Enhanced sign out with retry logic
+  const handleSignOut = async () => {
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut()
+      
+      // Verify the sign-out was successful
+      let attempts = 0
+      const maxAttempts = 3
+      
+      const checkAndNavigate = async () => {
+        attempts++
+        try {
+          // Check if session is null (sign out successful)
+          const { data } = await supabase.auth.getSession()
+          
+          if (!data.session) {
+            // Session is confirmed to be gone, navigate
+            window.location.href = '/login'
+          } else if (attempts < maxAttempts) {
+            // Try again after a delay
+            setTimeout(checkAndNavigate, 500)
+          } else {
+            // Last resort fallback
+            window.location.href = '/login'
+          }
+        } catch (err) {
+          console.error("Session check error:", err)
+          // Fallback if there's an error checking session
+          if (attempts < maxAttempts) {
+            setTimeout(checkAndNavigate, 500)
+          } else {
+            window.location.href = '/login'
+          }
+        }
+      }
+      
+      // Start the check process
+      checkAndNavigate()
+    } catch (error) {
+      console.error("Sign out error:", error)
+      // Fallback if sign out fails
+      window.location.href = '/login'
+    }
+  }
+
   // If authenticated, show dashboard content
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,11 +110,7 @@ export default function RootPage() {
             <div className="flex items-center space-x-4">
               <span className="text-gray-600">{session.user?.email}</span>
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut()
-                  // Use router.replace instead of relying on middleware
-                  router.replace('/login')
-                }}
+                onClick={handleSignOut}
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Sign out
