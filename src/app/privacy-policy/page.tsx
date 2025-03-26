@@ -47,7 +47,7 @@ export default function PrivacyPolicy() {
 
           {/* Card Body */}
           <div className="p-6 md:p-8">
-            <div className="prose prose-sm sm:prose max-w-none">
+            <div className="prose prose-sm sm:prose max-w-none text-gray-700">
               <p className="mb-4">
                 Last Updated: March 26, 2025
               </p>
@@ -59,17 +59,17 @@ export default function PrivacyPolicy() {
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Information We Collect</h2>
               <p className="mb-2">We may collect the following types of information:</p>
-              <ul className="list-disc pl-5 mb-4">
-                <li className="mb-2"><strong>Personal Information:</strong> Name, email address, phone number, birthday, and other information you provide during registration or profile updates.</li>
-                <li className="mb-2"><strong>Profile Information:</strong> Educational background, professional details, and other information you choose to share in your alumni profile.</li>
-                <li className="mb-2"><strong>Usage Data:</strong> Information about how you interact with our website, including login times, features used, and pages visited.</li>
-                <li className="mb-2"><strong>Device Information:</strong> Information about the device and browser you use to access our site.</li>
-                <li className="mb-2"><strong>Communication Data:</strong> Messages, comments, and other content you post on the platform.</li>
+              <ul className="list-disc pl-5 mb-4 text-gray-700">
+                <li className="mb-2"><strong className="text-gray-800">Personal Information:</strong> Name, email address, phone number, birthday, and other information you provide during registration or profile updates.</li>
+                <li className="mb-2"><strong className="text-gray-800">Profile Information:</strong> Educational background, professional details, and other information you choose to share in your alumni profile.</li>
+                <li className="mb-2"><strong className="text-gray-800">Usage Data:</strong> Information about how you interact with our website, including login times, features used, and pages visited.</li>
+                <li className="mb-2"><strong className="text-gray-800">Device Information:</strong> Information about the device and browser you use to access our site.</li>
+                <li className="mb-2"><strong className="text-gray-800">Communication Data:</strong> Messages, comments, and other content you post on the platform.</li>
               </ul>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">How We Use Your Information</h2>
               <p className="mb-2">We use your information for the following purposes:</p>
-              <ul className="list-disc pl-5 mb-4">
+              <ul className="list-disc pl-5 mb-4 text-gray-700">
                 <li className="mb-2">To provide and maintain the alumni directory and platform services</li>
                 <li className="mb-2">To notify you about events, updates, and important announcements</li>
                 <li className="mb-2">To improve our website and user experience</li>
@@ -79,18 +79,18 @@ export default function PrivacyPolicy() {
               </ul>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Data Storage and Security</h2>
-              <p className="mb-4">
+              <p className="mb-4 text-gray-700">
                 We use Supabase for authentication and data storage. Your personal information is stored securely with encryption and protected through industry-standard security measures. We implement appropriate technical and organizational measures to prevent unauthorized access, disclosure, modification, or unauthorized destruction of your data.
               </p>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Data Sharing</h2>
-              <p className="mb-4">
+              <p className="mb-4 text-gray-700">
                 We do not sell your personal information to third parties. Your information may be visible to other alumni members as part of the directory feature, based on your privacy settings. We may share limited information with trusted service providers who assist us in operating the website, conducting our business, or servicing you.
               </p>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Your Rights</h2>
-              <p className="mb-2">You have the right to:</p>
-              <ul className="list-disc pl-5 mb-4">
+              <p className="mb-2 text-gray-700">You have the right to:</p>
+              <ul className="list-disc pl-5 mb-4 text-gray-700">
                 <li className="mb-2">Access, update, or delete your personal information</li>
                 <li className="mb-2">Adjust your privacy settings to control what information is visible to others</li>
                 <li className="mb-2">Opt-out of communications</li>
@@ -98,17 +98,17 @@ export default function PrivacyPolicy() {
               </ul>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Cookies and Tracking</h2>
-              <p className="mb-4">
+              <p className="mb-4 text-gray-700">
                 We use cookies and similar tracking technologies to enhance your experience on our site, analyze site usage, and assist in our marketing efforts. You can control cookies through your browser settings.
               </p>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Changes to This Privacy Policy</h2>
-              <p className="mb-4">
+              <p className="mb-4 text-gray-700">
                 We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of any material changes and post the updated policy on our website.
               </p>
               
               <h2 className="text-xl font-bold text-[#7D1A1D] mt-6 mb-3">Contact Us</h2>
-              <p className="mb-4">
+              <p className="mb-4 text-gray-700">
                 If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at <a href="mailto:admin@sulyap84.org" className="text-[#7D1A1D] underline">admin@sulyap84.org</a>.
               </p>
             </div>
