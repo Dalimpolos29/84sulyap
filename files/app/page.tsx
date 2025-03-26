@@ -29,9 +29,17 @@ export default function RootPage() {
 
   // Handle sign out with history clearing
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    // Clear history and force a hard refresh to /login
-    window.location.href = '/login'
+    try {
+      await supabase.auth.signOut()
+      // Clear session state
+      setSession(null)
+      // Force a hard refresh to base URL
+      window.location.href = '/'
+      // Prevent any further execution
+      return
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   if (isLoading) {
