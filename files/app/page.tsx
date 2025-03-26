@@ -8,6 +8,7 @@ import LoginPage from '@/app/(auth)/login/page'
 export default function RootPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -25,6 +26,13 @@ export default function RootPage() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Handle sign out with history clearing
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    // Clear history and force a hard refresh to /login
+    window.location.href = '/login'
+  }
 
   if (isLoading) {
     return (
@@ -49,9 +57,7 @@ export default function RootPage() {
             <div className="flex items-center space-x-4">
               <span className="text-gray-600">{session.user?.email}</span>
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut()
-                }}
+                onClick={handleSignOut}
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Sign out
