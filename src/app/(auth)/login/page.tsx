@@ -1,5 +1,8 @@
 "use client"
 
+// Improved login flow with enhanced session verification and retry logic
+// This implementation ensures proper redirection after auth state changes
+
 import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"

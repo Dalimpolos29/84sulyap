@@ -1,5 +1,8 @@
 'use client'
 
+// Enhanced dashboard with robust session handling and sign-out flow
+// This implementation ensures proper session verification before navigation
+
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
