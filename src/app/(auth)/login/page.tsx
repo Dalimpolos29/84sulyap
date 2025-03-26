@@ -631,7 +631,7 @@ export default function LoginSignupPage() {
                             onFocus={() => setEmailFocused(true)}
                             onBlur={() => setEmailFocused(false)}
                             className={cn(
-                              "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                              "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               emailFocused || email ? "border-[#7D1A1D]" : "border-gray-300",
                               emailError ? "border-red-500" : "",
                             )}
@@ -663,7 +663,7 @@ export default function LoginSignupPage() {
                             onFocus={() => setOtpFocused(true)}
                             onBlur={() => setOtpFocused(false)}
                             className={cn(
-                              "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                              "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               otpFocused || otp ? "border-[#7D1A1D]" : "border-gray-300",
                             )}
                             placeholder=""
@@ -697,7 +697,7 @@ export default function LoginSignupPage() {
                               onFocus={() => setPasswordFocused(true)}
                               onBlur={() => setPasswordFocused(false)}
                               className={cn(
-                                "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                 passwordFocused || password ? "border-[#7D1A1D]" : "border-gray-300",
                                 passwordError ? "border-red-500" : "",
                               )}
@@ -736,7 +736,7 @@ export default function LoginSignupPage() {
                               onFocus={() => setConfirmPasswordFocused(true)}
                               onBlur={() => setConfirmPasswordFocused(false)}
                               className={cn(
-                                "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                 confirmPasswordFocused || confirmPassword ? "border-[#7D1A1D]" : "border-gray-300",
                                 password !== confirmPassword && confirmPassword ? "border-red-500" : "",
                               )}
@@ -820,7 +820,7 @@ export default function LoginSignupPage() {
                                 onFocus={() => setFirstNameFocused(true)}
                                 onBlur={() => setFirstNameFocused(false)}
                                 className={cn(
-                                  "block w-full px-3 py-1.5 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                  "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   firstNameFocused || firstName ? "border-[#7D1A1D]" : "border-gray-300",
                                 )}
                                 required
@@ -848,7 +848,7 @@ export default function LoginSignupPage() {
                                 onFocus={() => setMiddleNameFocused(true)}
                                 onBlur={() => setMiddleNameFocused(false)}
                                 className={cn(
-                                  "block w-full px-3 py-1.5 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                  "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   middleNameFocused || middleName ? "border-[#7D1A1D]" : "border-gray-300",
                                 )}
                               />
@@ -878,7 +878,7 @@ export default function LoginSignupPage() {
                                 onFocus={() => setLastNameFocused(true)}
                                 onBlur={() => setLastNameFocused(false)}
                                 className={cn(
-                                  "block w-full px-3 py-1.5 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                  "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   lastNameFocused || lastName ? "border-[#7D1A1D]" : "border-gray-300",
                                 )}
                                 required
@@ -906,7 +906,7 @@ export default function LoginSignupPage() {
                                 onFocus={() => setSuffixFocused(true)}
                                 onBlur={() => setSuffixFocused(false)}
                                 className={cn(
-                                  "block w-full px-3 py-1.5 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                  "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   suffixFocused || suffix ? "border-[#7D1A1D]" : "border-gray-300",
                                 )}
                               />
@@ -937,7 +937,7 @@ export default function LoginSignupPage() {
                             placeholder=""
                             maxLength={10}
                             className={cn(
-                              "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                              "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               birthdayFocused || birthday ? "border-[#7D1A1D]" : "border-gray-300",
                               birthdayError ? "border-red-500" : "",
                             )}
@@ -1004,7 +1004,7 @@ export default function LoginSignupPage() {
                                 setShowCountryDropdown(false)
                               }}
                               className={cn(
-                                "block w-full px-4 py-2 text-gray-700 bg-white border border-l-0 rounded-r-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                                "block w-full px-4 py-2 text-black bg-white border border-l-0 rounded-r-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                 phoneNumberFocused || phoneNumber ? "border-[#7D1A1D]" : "border-gray-300",
                                 phoneNumberError ? "border-red-500" : "",
                               )}
@@ -1032,7 +1032,11 @@ export default function LoginSignupPage() {
                       <input
                         id="email"
                         name="email"
-                        className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200 border-[#7D1A1D]"
+                        className={cn(
+                          "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                          emailFocused || email ? "border-[#7D1A1D]" : "border-gray-300",
+                          emailError ? "border-red-500" : "",
+                        )}
                         required
                         type="email"
                         value={email}
@@ -1065,7 +1069,7 @@ export default function LoginSignupPage() {
                         onFocus={() => setPasswordFocused(true)}
                         onBlur={() => setPasswordFocused(false)}
                         className={cn(
-                          "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                          "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                           passwordFocused || password ? "border-[#7D1A1D]" : "border-gray-300",
                           passwordError ? "border-red-500" : "",
                         )}
@@ -1106,7 +1110,7 @@ export default function LoginSignupPage() {
                             onFocus={() => setConfirmPasswordFocused(true)}
                             onBlur={() => setConfirmPasswordFocused(false)}
                             className={cn(
-                              "block w-full px-4 py-2 text-gray-700 bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
+                              "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               confirmPasswordFocused || confirmPassword ? "border-[#7D1A1D]" : "border-gray-300",
                               password !== confirmPassword && confirmPassword ? "border-red-500" : "",
                             )}
