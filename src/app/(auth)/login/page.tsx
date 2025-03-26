@@ -1241,7 +1241,7 @@ export default function LoginSignupPage() {
                               htmlFor="terms"
                               className="text-sm font-medium leading-tight text-gray-600 font-serif peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                             >
-                              I agree to the <Link href="/privacy-policy" className="text-[#7D1A1D] hover:underline">Privacy Policy</Link> and <Link href="/terms" className="text-[#7D1A1D] hover:underline">Terms of Use</Link>
+                              I agree to the <Link href="/privacy-policy" className="text-[#7D1A1D] hover:underline">Privacy Policy</Link> and <Link href="/terms-of-use" className="text-[#7D1A1D] hover:underline">Terms of Use</Link>
                             </label>
                             <p className="text-xs text-gray-600 font-serif">
                               I understand that my provided information will be used to create a personalized alumni
@@ -1331,7 +1331,7 @@ export default function LoginSignupPage() {
                     Privacy Policy
                   </Link>
                   <span className="text-xs text-gray-500 mx-2 font-serif">|</span>
-                  <Link href="/terms" className="text-xs text-[#7D1A1D] hover:underline font-serif">
+                  <Link href="/terms-of-use" className="text-xs text-[#7D1A1D] hover:underline font-serif">
                     Terms of Use
                   </Link>
                 </div>

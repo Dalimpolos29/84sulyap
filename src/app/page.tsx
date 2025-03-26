@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import LoginPage from './(auth)/login/page'
+import Link from 'next/link'
 
 export default function RootPage() {
   const router = useRouter()
@@ -133,6 +134,26 @@ export default function RootPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-100 border-t border-gray-200 mt-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0">
+              <p className="text-sm text-gray-500">© 2025 UPIS Batch '84 Alumni Portal</p>
+              <p className="text-sm text-gray-500">All Rights Reserved</p>
+            </div>
+            <div className="flex space-x-6">
+              <Link href="/privacy-policy" className="text-sm text-[#7D1A1D] hover:underline">
+                Privacy Policy
+              </Link>
+              <Link href="/terms-of-use" className="text-sm text-[#7D1A1D] hover:underline">
+                Terms of Use
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
