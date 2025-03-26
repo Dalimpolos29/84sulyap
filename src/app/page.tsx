@@ -9,6 +9,7 @@ export default function RootPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
+  const [signoutSuccess, setSignoutSuccess] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -26,6 +27,16 @@ export default function RootPage() {
 
     return () => subscription.unsubscribe()
   }, [])
+  
+  // Add effect for navigation after successful sign-out
+  useEffect(() => {
+    if (signoutSuccess) {
+      const timer = setTimeout(() => {
+        router.replace('/login')
+      }, 1000) // 1 second delay
+      return () => clearTimeout(timer)
+    }
+  }, [signoutSuccess, router])
 
   if (isLoading) {
     return (
@@ -40,6 +51,14 @@ export default function RootPage() {
     return <LoginPage />
   }
 
+  // Handle sign out
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setSignoutSuccess(true)
+    // Remove the direct navigation
+    // router.replace('/login')
+  }
+
   // If authenticated, show dashboard content
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,11 +69,7 @@ export default function RootPage() {
             <div className="flex items-center space-x-4">
               <span className="text-gray-600">{session.user?.email}</span>
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut()
-                  // Use router.replace instead of relying on middleware
-                  router.replace('/login')
-                }}
+                onClick={handleSignOut}
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Sign out

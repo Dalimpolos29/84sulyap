@@ -45,6 +45,7 @@ export default function LoginSignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [loginSuccess, setLoginSuccess] = useState(false)
 
   // Validation errors
   const [emailError, setEmailError] = useState("")
@@ -64,6 +65,9 @@ export default function LoginSignupPage() {
   const [emailAvailable, setEmailAvailable] = useState(false)
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
 
+  // Add a resetPasswordSuccess state near the top with other state variables
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false)
+
   const supabase = createClient()
 
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -81,6 +85,26 @@ export default function LoginSignupPage() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
+  // Add useEffect for navigation after successful login
+  useEffect(() => {
+    if (loginSuccess) {
+      const timer = setTimeout(() => {
+        router.replace('/')
+      }, 1500) // 1.5 second delay to show success message
+      return () => clearTimeout(timer)
+    }
+  }, [loginSuccess, router])
+
+  // Add useEffect for navigation after successful password reset
+  useEffect(() => {
+    if (resetPasswordSuccess) {
+      const timer = setTimeout(() => {
+        router.replace('/login')
+      }, 2000) // 2 second delay
+      return () => clearTimeout(timer)
+    }
+  }, [resetPasswordSuccess, router])
 
   // Email validation
   const validateEmail = (email: string) => {
@@ -284,6 +308,7 @@ export default function LoginSignupPage() {
 
     setLoading(true)
     setSuccess("")
+    setLoginSuccess(false)
 
     try {
       if (isLogin) {
@@ -294,9 +319,9 @@ export default function LoginSignupPage() {
 
         if (error) throw error
 
-        // Set success message and immediately redirect
+        // Set success message and set loginSuccess to true to trigger navigation
         setSuccess("Login successful!")
-        router.replace("/")
+        setLoginSuccess(true)
       } else {
         // Double-check email availability before signup
         const { error: checkError } = await supabase.auth.signInWithOtp({
@@ -453,21 +478,18 @@ export default function LoginSignupPage() {
       await supabase.auth.signOut()
       
       // Reset form after successful password update
-      setTimeout(() => {
-        setIsForgotPassword(false)
-        setIsVerified(false)
-        setIsLogin(true)
-        setPassword("")
-        setConfirmPassword("")
-        setOtp("")
-        setEmail("")
-        setError("")
-        setPasswordError("")
-        setSuccess("")
-        
-        // Navigate to login page to ensure proper state reset
-        router.replace('/login')
-      }, 2000)
+      setIsForgotPassword(false)
+      setIsVerified(false)
+      setIsLogin(true)
+      setPassword("")
+      setConfirmPassword("")
+      setOtp("")
+      setEmail("")
+      setError("")
+      setPasswordError("")
+      
+      // Set resetPasswordSuccess to trigger navigation
+      setResetPasswordSuccess(true)
     } catch (error: any) {
       console.error("Password reset error:", error)
       setError(error.message || "Failed to update password. Please try again.")
