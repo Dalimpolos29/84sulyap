@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import LoginPage from './(auth)/login/page'
+import LoginPage from '@/app/(auth)/login/page'
 
 export default function RootPage() {
   const [isLoading, setIsLoading] = useState(true)
