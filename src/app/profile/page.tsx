@@ -538,8 +538,7 @@ export default function ProfilePage() {
     }
     
     checkSession()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [router])
   
   if (isLoading) {
     return (

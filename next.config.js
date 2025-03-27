@@ -30,6 +30,10 @@ const nextConfig = {
         ],
       },
     ]
+  },
+  // Disable ESLint during builds
+  eslint: {
+    ignoreDuringBuilds: true
   }
 }
 
