@@ -44,6 +44,9 @@ export default function LoginSignupPage() {
   const [suffixFocused, setSuffixFocused] = useState(false)
   const [birthdayFocused, setBirthdayFocused] = useState(false)
   const [phoneNumberFocused, setPhoneNumberFocused] = useState(false)
+  
+  // New state to track if any input has been interacted with
+  const [formInteracted, setFormInteracted] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -100,6 +103,7 @@ export default function LoginSignupPage() {
   useEffect(() => {
     if (resetPasswordSuccess) {
       const timer = setTimeout(() => {
+        setSuccess("")
         router.replace('/login')
       }, 2000)
       return () => clearTimeout(timer)
@@ -253,6 +257,9 @@ export default function LoginSignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Reset interaction state on new form submission
+    setFormInteracted(false)
+    
     // Reset errors
     setError("")
     setEmailError("")
@@ -306,6 +313,10 @@ export default function LoginSignupPage() {
       return
     }
 
+    // Record start time to ensure minimum loading duration
+    const startTime = Date.now()
+    const minimumLoadingTime = 2000 // 2 seconds minimum to show animation
+
     setLoading(true)
     setSuccess("")
     setLoginSuccess(false)
@@ -319,7 +330,13 @@ export default function LoginSignupPage() {
 
         if (error) throw error
 
-        setSuccess("Login successful!")
+        setSuccess("Login successful")
+        
+        // Ensure minimum loading time for animation
+        const elapsedTime = Date.now() - startTime
+        if (elapsedTime < minimumLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+        }
         
         // Enhanced navigation with retry logic
         let attempts = 0
@@ -389,10 +406,68 @@ export default function LoginSignupPage() {
 
         if (error) throw error
 
-        setSuccess("Account created successfully! Please check your email for verification.")
+        // Ensure minimum loading time for animation
+        const elapsedTime = Date.now() - startTime
+        if (elapsedTime < minimumLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+        }
+
+        setSuccess("Account created - check your email to verify")
       }
     } catch (error: any) {
+      // Ensure minimum loading time for animation even on error
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minimumLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+      }
+      
       setError(error.message || "An error occurred")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyOTP = async (otp: string) => {
+    if (!email || !otp) {
+      setError("Please enter the verification code")
+      return
+    }
+
+    // Record start time to ensure minimum loading duration
+    const startTime = Date.now()
+    const minimumLoadingTime = 2000 // 2 seconds minimum to show animation
+
+    setLoading(true)
+    // Set success to true to ensure correct loading state display
+    setSuccess("verifying") 
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'recovery'
+      })
+
+      if (error) throw error
+
+      // Ensure minimum loading time for animation
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minimumLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+      }
+
+      setIsVerified(true)
+      setError("")
+      setSuccess("Code verified successfully")
+    } catch (error: any) {
+      // Ensure minimum loading time for animation even on error
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minimumLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+      }
+      
+      console.error("OTP verification error:", error)
+      setError(error.message || "Invalid verification code. Please try again.")
+      setSuccess("")
     } finally {
       setLoading(false)
     }
@@ -401,10 +476,12 @@ export default function LoginSignupPage() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Reset interaction state on new form submission
+    setFormInteracted(false)
+    
     // Reset errors and success
     setError("")
     setEmailError("")
-    setSuccess("")
 
     // Only proceed with sending OTP if we're not already in verification or reset state
     if (!success) {
@@ -414,7 +491,12 @@ export default function LoginSignupPage() {
         return
       }
 
+      // Record start time to ensure minimum loading duration
+      const startTime = Date.now()
+      const minimumLoadingTime = 2000 // 2 seconds minimum to show animation
+
       setLoading(true)
+      setSuccess("")
 
       try {
         // First check if email exists
@@ -424,7 +506,7 @@ export default function LoginSignupPage() {
         if (checkError) throw checkError
 
         if (!emailExists) {
-          throw new Error("No account found with this email address")
+          throw new Error("No account found with this email")
         }
 
         // Send OTP using signInWithOtp instead of resetPasswordForEmail
@@ -437,10 +519,22 @@ export default function LoginSignupPage() {
 
         if (error) throw error
 
-        setSuccess("A verification code has been sent to your email. Please check your inbox.")
+        // Ensure minimum loading time for animation
+        const elapsedTime = Date.now() - startTime
+        if (elapsedTime < minimumLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+        }
+
+        setSuccess("Verification code sent to your email")
       } catch (error: any) {
+        // Ensure minimum loading time for animation even on error
+        const elapsedTime = Date.now() - startTime
+        if (elapsedTime < minimumLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+        }
+        
         console.error("Password reset request error:", error)
-        setError(error.message || "Failed to send verification code. Please try again.")
+        setError(error.message || "Failed to send verification code")
         setSuccess("")
       } finally {
         setLoading(false)
@@ -451,34 +545,6 @@ export default function LoginSignupPage() {
     } else if (isVerified) {
       // Handle password reset
       await handleResetPassword(e)
-    }
-  }
-
-  const handleVerifyOTP = async (otp: string) => {
-    if (!email || !otp) {
-      setError("Please enter the verification code")
-      return
-    }
-
-    setLoading(true)
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'recovery'
-      })
-
-      if (error) throw error
-
-      setIsVerified(true)
-      setError("")
-      setSuccess("Code verified successfully. Please set your new password.")
-    } catch (error: any) {
-      console.error("OTP verification error:", error)
-      setError(error.message || "Invalid verification code. Please try again.")
-      setSuccess("")
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -495,64 +561,60 @@ export default function LoginSignupPage() {
       return
     }
 
+    // Record start time to ensure minimum loading duration
+    const startTime = Date.now()
+    const minimumLoadingTime = 2000 // 2 seconds minimum to show animation
+
     setLoading(true)
+    // Set success to ensure correct loading state in header 
+    setSuccess("setting")
     try {
-      const { error } = await supabase.auth.updateUser({ 
-        password 
+      const { error } = await supabase.auth.updateUser({
+        password
       })
 
       if (error) throw error
 
+      // Ensure minimum loading time for animation
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minimumLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+      }
+
       setError("")
-      setSuccess("Password updated successfully! Please sign in with your new password.")
+      setSuccess("Password set successfully")
       
       // Sign out the user after successful password reset
       await supabase.auth.signOut()
       
-      // Reset form
-      setIsForgotPassword(false)
-      setIsVerified(false)
-      setIsLogin(true)
-      setPassword("")
-      setConfirmPassword("")
-      setOtp("")
-      setEmail("")
-      setError("")
-      setPasswordError("")
+      // Show success state for 2 seconds before reset
+      setResetPasswordSuccess(true)
       
-      // Enhanced navigation with delay to show success message
+      // Reset form after a delay
       setTimeout(() => {
-        // Verify the sign-out was successful
-        let attempts = 0
-        const maxAttempts = 3
+        // Reset all states
+        setIsForgotPassword(false)
+        setIsVerified(false)
+        setIsLogin(true)
+        setPassword("")
+        setConfirmPassword("")
+        setOtp("")
+        setEmail("")
+        setError("")
+        setPasswordError("")
+        setFormInteracted(false)
+        setSuccess("")
         
-        const checkAndNavigate = async () => {
-          attempts++
-          try {
-            // Check if session is null (sign out successful)
-            const { data } = await supabase.auth.getSession()
-            
-            if (!data.session) {
-              // Session is confirmed to be gone, navigate
-              window.location.href = '/login'
-            } else if (attempts < maxAttempts) {
-              // Try again after a delay
-              setTimeout(checkAndNavigate, 500)
-            } else {
-              // Last resort fallback
-              window.location.href = '/login'
-            }
-          } catch (err) {
-            console.error("Session check error:", err)
-            // Fallback if there's an error checking session
-            window.location.href = '/login'
-          }
-        }
-        
-        // Start the check process
-        checkAndNavigate()
-      }, 2000) // 2 second delay to show success message
+        // Navigate to login page
+        router.replace('/login')
+      }, 2000)
     } catch (error: any) {
+      // Ensure minimum loading time for animation even on error
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime < minimumLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+      }
+      
       console.error("Password reset error:", error)
       setError(error.message || "Failed to update password. Please try again.")
     } finally {
@@ -573,6 +635,8 @@ export default function LoginSignupPage() {
     setSuccess("")
     setEmailError("")
     setEmailAvailable(false)
+    // Reset form interaction state when switching modes
+    setFormInteracted(false)
   }
 
   const toggleForgotPassword = () => {
@@ -586,6 +650,8 @@ export default function LoginSignupPage() {
     setError("")
     setSuccess("")
     setOtp("")
+    // Reset form interaction state when switching modes
+    setFormInteracted(false)
   }
 
   const countryCodes = [
@@ -615,6 +681,23 @@ export default function LoginSignupPage() {
     { code: "+973", name: "Bahrain" },
     { code: "+968", name: "Oman" },
   ]
+
+  // Helper to mark form as interacted when any input gets focus
+  const handleInputFocus = (setFocusedState: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setFormInteracted(true)
+    setFocusedState(true)
+  }
+  
+  // Helper for onBlur that keeps the focus state but updates the visual focus
+  const handleInputBlur = (setFocusedState: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setFocusedState(false)
+    // We keep formInteracted true to maintain the default state 
+  }
+
+  // Helper function to truncate error messages
+  const truncateMessage = (message: string, maxLength: number = 40) => {
+    return message.length > maxLength ? message.substring(0, maxLength) + '...' : message
+  }
 
   return (
     <div
@@ -653,60 +736,133 @@ export default function LoginSignupPage() {
         <div className="max-w-md w-full">
           {/* Logo */}
           <div className="text-center mb-0 relative z-10">
-            <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden flex items-center justify-center border-2 border-[#C9A335] bg-white shadow-lg">
-              <Image
-                src="/images/logo.svg"
-                alt="UPIS 84 Logo"
-                width={128}
-                height={128}
-                className="rounded-full object-cover"
-                priority
-              />
+            <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+              {/* Google-style animated border container for loading state */}
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-36 h-36 rounded-full border-4 border-[#C9A335] border-t-[#C9A335]/30 border-r-[#C9A335]/30 border-b-[#C9A335]/30 animate-spin"></div>
+                </div>
+              )}
+              
+              {/* Static border containers for success/error states - only show when not interacted with form */}
+              {success && !error && !loading && (!formInteracted || isForgotPassword) && (
+                <div className="absolute inset-0 rounded-full border-4 border-[#006633]"></div>
+              )}
+              
+              {error && !loading && (!formInteracted || isForgotPassword) && (
+                <div className="absolute inset-0 rounded-full border-4 border-[#7D1A1D]"></div>
+              )}
+              
+              {/* Default border when no state is active or when form has been interacted with */}
+              {((!loading && !success && !error) || (formInteracted && !isForgotPassword)) && (
+                <div className="absolute inset-0 rounded-full border-2 border-[#C9A335]"></div>
+              )}
+              
+              {/* Inner white background and image */}
+              <div className="relative w-32 h-32 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-lg z-10 m-auto">
+                <Image
+                  src="/images/logo.svg"
+                  alt="UPIS 84 Logo"
+                  width={128}
+                  height={128}
+                  className="rounded-full object-cover"
+                  priority
+                />
+              </div>
             </div>
           </div>
 
           {/* Card */}
           <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden mt-[-1rem]">
-            {/* Card Header */}
-            <div className="bg-[#7D1A1D] text-white py-6 px-6 text-center">
-              <h1 className="text-2xl font-serif font-bold">{isForgotPassword ? "Reset Password" : isLogin ? "Welcome to Sulyap84" : "Join Sulyap84"}</h1>
-              <p className="mt-1 font-serif text-xs sm:text-sm md:text-base leading-tight whitespace-nowrap">Reconnecting Our Past, Empowering Our Future</p>
+            {/* Card Header - background changes based on state */}
+            <div className={`text-white py-3 md:py-4 px-4 md:px-6 text-center min-h-[80px] flex flex-col justify-center items-center
+              ${loading ? 'bg-[#C9A335]' :
+              success && !error && !formInteracted && !isForgotPassword ? 'bg-[#006633]' : 
+              success && !error && isForgotPassword ? 'bg-[#006633]' :
+              error && !formInteracted && !isForgotPassword ? 'bg-[#a01a1d]' : 
+              error && isForgotPassword ? 'bg-[#a01a1d]' :
+              'bg-[#7D1A1D]'}`}>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold mb-1 text-shadow">
+                {loading ? (
+                  isForgotPassword ? 
+                    !success ? "Sending OTP..." : 
+                    success === "verifying" ? "Verifying OTP..." :
+                    success === "setting" ? "Setting Password..." :
+                    !isVerified ? "Verifying OTP..." : 
+                    "Setting Password..." 
+                  : isLogin ? "Logging In..." : "Signing Up..."
+                ) : success && !error && (isForgotPassword || !formInteracted) ? (
+                  isForgotPassword ? (
+                    isVerified ? 
+                      resetPasswordSuccess ? "Password Set" : "Set Password" 
+                    : "Input OTP"
+                  ) : 
+                  isLogin ? "Login Successful" : "Signup Successful"
+                ) : error && (isForgotPassword || !formInteracted) ? (
+                  "Authentication Failed"
+                ) : (
+                  isForgotPassword ? "Reset Password" : isLogin ? "Welcome to Sulyap84" : "Join Sulyap84"
+                )}
+              </h1>
+              <p 
+                className="font-serif text-xs md:text-sm truncate text-shadow text-center mx-auto w-full" 
+                style={{ 
+                  maxWidth: "100%", 
+                  textOverflow: "ellipsis", 
+                  whiteSpace: "nowrap",
+                  overflow: "hidden"
+                }}
+                title={
+                  loading ? (
+                    isForgotPassword ? 
+                      !success ? "Sending verification code" :
+                      success === "verifying" ? "Verifying your code" :
+                      success === "setting" ? "Setting your password" :
+                      !isVerified ? "Verifying your code" :
+                      "Setting your password"
+                    : "Processing your request"
+                  ) : success && !error && (isForgotPassword || !formInteracted) ? (
+                    isForgotPassword ? (
+                      isVerified ? 
+                        resetPasswordSuccess ? "Password set successfully" : "Enter new password" 
+                      : "Enter verification code"
+                    ) : success
+                  ) : error && (isForgotPassword || !formInteracted) ? (
+                    truncateMessage(error)
+                  ) : (
+                    "Reconnecting Our Past, Empowering Our Future"
+                  )
+                }
+              >
+                {loading ? (
+                  isForgotPassword ? 
+                    !success ? "Sending verification code" :
+                    success === "verifying" ? "Verifying your code" :
+                    success === "setting" ? "Setting your password" :
+                    !isVerified ? "Verifying your code" :
+                    "Setting your password"
+                  : "Processing your request"
+                ) : success && !error && (isForgotPassword || !formInteracted) ? (
+                  isForgotPassword ? (
+                    isVerified ? 
+                      resetPasswordSuccess ? "Password set successfully" : "Enter new password" 
+                    : "Enter verification code"
+                  ) : success
+                ) : error && (isForgotPassword || !formInteracted) ? (
+                  truncateMessage(error)
+                ) : (
+                  "Reconnecting Our Past, Empowering Our Future"
+                )}
+              </p>
             </div>
 
             {/* Card Body */}
             <div className="p-6">
-              {/* Error Message */}
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2">
-                  <AlertCircle size={18} />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Success Message */}
-              {success && (
-                <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md flex items-center gap-2">
-                  <CheckCircle size={18} />
-                  <span>{success}</span>
-                </div>
-              )}
-
               <form onSubmit={isForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
                 {/* Show different content based on mode */}
                 {isForgotPassword ? (
                   <>
                     <div className="mb-4">
-                      <p className="mb-4 text-center text-sm text-gray-600">
-                        {!success ? (
-                          "Enter your email address and we'll send you a verification code."
-                        ) : isVerified ? (
-                          "Please enter your new password."
-                        ) : (
-                          "Please enter the verification code sent to your email."
-                        )}
-                      </p>
-                      
-                      {/* Email Input - Only show if no code has been sent and not showing success message */}
                       {!success && !isVerified && (
                         <div className="relative">
                           <input
@@ -714,8 +870,8 @@ export default function LoginSignupPage() {
                             type="email"
                             value={email}
                             onChange={handleEmailChange}
-                            onFocus={() => setEmailFocused(true)}
-                            onBlur={() => setEmailFocused(false)}
+                            onFocus={() => handleInputFocus(setEmailFocused)}
+                            onBlur={() => handleInputBlur(setEmailFocused)}
                             className={cn(
                               "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               emailFocused || email ? "border-[#7D1A1D]" : "border-gray-300",
@@ -734,7 +890,7 @@ export default function LoginSignupPage() {
                           >
                             Email Address
                           </label>
-                          {emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
+                          {emailError && <p className="mt-1 text-xs text-red-500">{truncateMessage(emailError)}</p>}
                         </div>
                       )}
 
@@ -746,8 +902,8 @@ export default function LoginSignupPage() {
                             type="text"
                             value={otp}
                             onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            onFocus={() => setOtpFocused(true)}
-                            onBlur={() => setOtpFocused(false)}
+                            onFocus={() => handleInputFocus(setOtpFocused)}
+                            onBlur={() => handleInputBlur(setOtpFocused)}
                             className={cn(
                               "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               otpFocused || otp ? "border-[#7D1A1D]" : "border-gray-300",
@@ -780,8 +936,8 @@ export default function LoginSignupPage() {
                               type={showPassword ? "text" : "password"}
                               value={password}
                               onChange={handlePasswordChange}
-                              onFocus={() => setPasswordFocused(true)}
-                              onBlur={() => setPasswordFocused(false)}
+                              onFocus={() => handleInputFocus(setPasswordFocused)}
+                              onBlur={() => handleInputBlur(setPasswordFocused)}
                               className={cn(
                                 "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                 passwordFocused || password ? "border-[#7D1A1D]" : "border-gray-300",
@@ -819,8 +975,8 @@ export default function LoginSignupPage() {
                               type={showConfirmPassword ? "text" : "password"}
                               value={confirmPassword}
                               onChange={handleConfirmPasswordChange}
-                              onFocus={() => setConfirmPasswordFocused(true)}
-                              onBlur={() => setConfirmPasswordFocused(false)}
+                              onFocus={() => handleInputFocus(setConfirmPasswordFocused)}
+                              onBlur={() => handleInputBlur(setConfirmPasswordFocused)}
                               className={cn(
                                 "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                 confirmPasswordFocused || confirmPassword ? "border-[#7D1A1D]" : "border-gray-300",
@@ -849,7 +1005,7 @@ export default function LoginSignupPage() {
                                 {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                               </button>
                             )}
-                            {passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
+                            {passwordError && <p className="mt-1 text-xs text-red-500">{truncateMessage(passwordError)}</p>}
                           </div>
                         </>
                       )}
@@ -864,14 +1020,14 @@ export default function LoginSignupPage() {
                       {loading ? (
                         <span className="flex items-center justify-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Loading...
+                          {!success ? "Sending OTP..." : !isVerified ? "Verifying OTP..." : "Setting Password..."}
                         </span>
                       ) : isVerified ? (
-                        <span className="text-lg font-medium">Reset Password</span>
+                        <span className="text-lg font-medium">Set Password</span>
                       ) : success ? (
                         <span className="text-lg font-medium">Verify Code</span>
                       ) : (
-                        <span className="text-lg font-medium">Send Verification Code</span>
+                        <span className="text-lg font-medium">Send OTP</span>
                       )}
                     </Button>
 
@@ -903,8 +1059,8 @@ export default function LoginSignupPage() {
                                 type="text"
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
-                                onFocus={() => setFirstNameFocused(true)}
-                                onBlur={() => setFirstNameFocused(false)}
+                                onFocus={() => handleInputFocus(setFirstNameFocused)}
+                                onBlur={() => handleInputBlur(setFirstNameFocused)}
                                 className={cn(
                                   "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   firstNameFocused || firstName ? "border-[#7D1A1D]" : "border-gray-300",
@@ -931,8 +1087,8 @@ export default function LoginSignupPage() {
                                 type="text"
                                 value={middleName}
                                 onChange={(e) => setMiddleName(e.target.value)}
-                                onFocus={() => setMiddleNameFocused(true)}
-                                onBlur={() => setMiddleNameFocused(false)}
+                                onFocus={() => handleInputFocus(setMiddleNameFocused)}
+                                onBlur={() => handleInputBlur(setMiddleNameFocused)}
                                 className={cn(
                                   "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   middleNameFocused || middleName ? "border-[#7D1A1D]" : "border-gray-300",
@@ -961,8 +1117,8 @@ export default function LoginSignupPage() {
                                 type="text"
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
-                                onFocus={() => setLastNameFocused(true)}
-                                onBlur={() => setLastNameFocused(false)}
+                                onFocus={() => handleInputFocus(setLastNameFocused)}
+                                onBlur={() => handleInputBlur(setLastNameFocused)}
                                 className={cn(
                                   "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   lastNameFocused || lastName ? "border-[#7D1A1D]" : "border-gray-300",
@@ -989,8 +1145,8 @@ export default function LoginSignupPage() {
                                 type="text"
                                 value={suffix}
                                 onChange={(e) => setSuffix(e.target.value)}
-                                onFocus={() => setSuffixFocused(true)}
-                                onBlur={() => setSuffixFocused(false)}
+                                onFocus={() => handleInputFocus(setSuffixFocused)}
+                                onBlur={() => handleInputBlur(setSuffixFocused)}
                                 className={cn(
                                   "block w-full px-3 py-1.5 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                                   suffixFocused || suffix ? "border-[#7D1A1D]" : "border-gray-300",
@@ -1018,8 +1174,8 @@ export default function LoginSignupPage() {
                             type="text"
                             value={birthday}
                             onChange={handleBirthdayChange}
-                            onFocus={() => setBirthdayFocused(true)}
-                            onBlur={() => setBirthdayFocused(false)}
+                            onFocus={() => handleInputFocus(setBirthdayFocused)}
+                            onBlur={() => handleInputBlur(setBirthdayFocused)}
                             placeholder=""
                             maxLength={10}
                             className={cn(
@@ -1040,7 +1196,7 @@ export default function LoginSignupPage() {
                           >
                             Birthday (MM-DD-YYYY)
                           </label>
-                          {birthdayError && <p className="mt-1 text-xs text-red-500">{birthdayError}</p>}
+                          {birthdayError && <p className="mt-1 text-xs text-red-500">{truncateMessage(birthdayError)}</p>}
                         </div>
 
                         {/* Phone Number Field */}
@@ -1084,9 +1240,9 @@ export default function LoginSignupPage() {
                               type="text"
                               value={phoneNumber}
                               onChange={handlePhoneNumberChange}
-                              onFocus={() => setPhoneNumberFocused(true)}
+                              onFocus={() => handleInputFocus(setPhoneNumberFocused)}
                               onBlur={() => {
-                                setPhoneNumberFocused(false)
+                                handleInputBlur(setPhoneNumberFocused)
                                 setShowCountryDropdown(false)
                               }}
                               className={cn(
@@ -1108,7 +1264,7 @@ export default function LoginSignupPage() {
                             Phone Number
                           </label>
                           
-                          {phoneNumberError && <p className="mt-1 text-xs text-red-500">{phoneNumberError}</p>}
+                          {phoneNumberError && <p className="mt-1 text-xs text-red-500">{truncateMessage(phoneNumberError)}</p>}
                         </div>
                       </>
                     )}
@@ -1127,8 +1283,8 @@ export default function LoginSignupPage() {
                         type="email"
                         value={email}
                         onChange={handleEmailChange}
-                        onFocus={() => setEmailFocused(true)}
-                        onBlur={() => setEmailFocused(false)}
+                        onFocus={() => handleInputFocus(setEmailFocused)}
+                        onBlur={() => handleInputBlur(setEmailFocused)}
                         autoComplete="email"
                       />
                       <label
@@ -1142,7 +1298,7 @@ export default function LoginSignupPage() {
                       >
                         Email Address
                       </label>
-                      {emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
+                      {emailError && <p className="mt-1 text-xs text-red-500">{truncateMessage(emailError)}</p>}
                     </div>
 
                     {/* Password Field */}
@@ -1152,8 +1308,8 @@ export default function LoginSignupPage() {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={handlePasswordChange}
-                        onFocus={() => setPasswordFocused(true)}
-                        onBlur={() => setPasswordFocused(false)}
+                        onFocus={() => handleInputFocus(setPasswordFocused)}
+                        onBlur={() => handleInputBlur(setPasswordFocused)}
                         className={cn(
                           "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                           passwordFocused || password ? "border-[#7D1A1D]" : "border-gray-300",
@@ -1193,8 +1349,8 @@ export default function LoginSignupPage() {
                             type={showConfirmPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={handleConfirmPasswordChange}
-                            onFocus={() => setConfirmPasswordFocused(true)}
-                            onBlur={() => setConfirmPasswordFocused(false)}
+                            onFocus={() => handleInputFocus(setConfirmPasswordFocused)}
+                            onBlur={() => handleInputBlur(setConfirmPasswordFocused)}
                             className={cn(
                               "block w-full px-4 py-2 text-black bg-white border rounded-md focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all duration-200",
                               confirmPasswordFocused || confirmPassword ? "border-[#7D1A1D]" : "border-gray-300",
@@ -1247,7 +1403,7 @@ export default function LoginSignupPage() {
                               I understand that my provided information will be used to create a personalized alumni
                               directory and enhance community interactions.
                             </p>
-                            {termsError && <p className="text-xs text-red-500">{termsError}</p>}
+                            {termsError && <p className="text-xs text-red-500">{truncateMessage(termsError)}</p>}
                           </div>
                         </div>
                       </>
@@ -1300,7 +1456,7 @@ export default function LoginSignupPage() {
                       {loading ? (
                         <span className="flex items-center justify-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Loading...
+                          {isLogin ? "Logging In..." : "Signing Up..."}
                         </span>
                       ) : isLogin ? (
                         <span className="text-lg font-medium">Sign In</span>
@@ -1340,6 +1496,13 @@ export default function LoginSignupPage() {
           </div>
         </div>
       </main>
+
+      {/* Add text-shadow utility class */}
+      <style jsx global>{`
+        .text-shadow {
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+      `}</style>
 
       {/* Footer */}
       <footer className="py-6 text-center text-gray-500 text-sm font-serif">
