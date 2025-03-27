@@ -5,7 +5,7 @@
 
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import LoginPage from './(auth)/login/page'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -15,6 +15,23 @@ import { ProfileProvider, useProfileContext } from '@/contexts/ProfileContext'
 // Dashboard content component that uses profile context
 function DashboardContent({ session, handleSignOut }: { session: any, handleSignOut: () => Promise<void> }) {
   const { profile, loading: profileLoading, fullName, initials } = useProfileContext()
+  const router = useRouter()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
   
   // Return a loading state while profile is being fetched
   if (profileLoading) {
@@ -38,9 +55,9 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
       }}
     >
       {/* Updated Header to match Facebook style */}
-      <header className="bg-[#7D1A1D] text-white py-2 shadow-md sticky top-0 z-50">
+      <header className="bg-[#7D1A1D] text-white py-3 shadow-md sticky top-0 z-50">
         <div className="w-full max-w-[1400px] mx-auto flex justify-between items-center px-4 sm:px-6 md:px-8">
-          <div className="flex items-center gap-2">
+          <div className="flex-1">
             <Link href="/" className="flex items-center gap-2">
               <div className="relative w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border border-[#C9A335] shadow-md">
                 <Image
@@ -52,48 +69,54 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
                   priority
                 />
               </div>
-              <span className="font-serif font-bold text-lg hidden sm:inline">UPIS Alumni Portal</span>
+              <span className="font-serif font-bold text-base md:text-lg line-clamp-1">UPIS Alumni Portal</span>
             </Link>
-            
-            {/* Search Bar */}
-            <div className="relative ml-4 hidden md:block">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-[#7D1A1D]/20 text-white placeholder-white/60 rounded-full px-4 py-1.5 w-56 lg:w-72 border border-white/20 focus:outline-none focus:border-[#C9A335] text-sm"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/70">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </div>
-            </div>
           </div>
           
-          {/* User Profile Dropdown */}
-          <div className="relative group">
-            <button className="flex items-center gap-2 focus:outline-none">
-              <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center text-[#7D1A1D] font-serif text-lg font-bold border border-[#C9A335]">
-                {initials}
+          {/* User Profile Dropdown - Icon only style matching screenshot */}
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              className="focus:outline-none relative" 
+              aria-label="User menu"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              {profile?.profile_picture_url ? (
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[#C9A335] hover:shadow-md transition-shadow">
+                  <Image
+                    src={profile.profile_picture_url}
+                    alt={`${fullName}'s profile`}
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover"
+                    priority
+                  />
+                </div>
+              ) : (
+                <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center text-[#7D1A1D] font-serif text-lg font-bold border border-[#C9A335] hover:shadow-md transition-shadow">
+                  {initials}
+                </div>
+              )}
+              {/* Dropdown chevron overlay on bottom edge of profile icon - smaller and repositioned */}
+              <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#7D1A1D] w-4 h-4 flex items-center justify-center border border-white">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
               </div>
-              <span className="text-white font-serif hidden md:inline">{fullName}</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/70">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
             </button>
             
             {/* Dropdown Menu */}
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg overflow-hidden z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100">
+            <div className={`absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg overflow-hidden z-10 transition-all duration-200 transform origin-top-right ${dropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}>
               <div className="p-2">
                 <div className="px-4 py-2 text-[#7D1A1D] font-medium border-b border-gray-200">
                   {fullName}
                 </div>
-                <div className="px-4 py-1 text-gray-500 text-sm">
-                  {profile?.profession || 'Class President'}
-                </div>
                 <div className="pt-2">
-                  <button className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left">
+                  <button 
+                    onClick={() => {
+                      router.push('/profile')
+                      setDropdownOpen(false)
+                    }} 
+                    className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
@@ -108,7 +131,10 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
                     Account Settings
                   </button>
                   <button 
-                    onClick={handleSignOut}
+                    onClick={() => {
+                      handleSignOut()
+                      setDropdownOpen(false)
+                    }}
                     className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left mt-1 border-t border-gray-100 pt-2"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -149,7 +175,9 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
                   <p className="text-sm text-gray-600 mb-4">
                     Update your personal information and preferences
                   </p>
-                  <button className="text-sm text-[#7D1A1D] hover:underline">
+                  <button 
+                    onClick={() => router.push('/profile')} 
+                    className="text-sm text-[#7D1A1D] hover:underline">
                     Edit Profile
                   </button>
                 </div>

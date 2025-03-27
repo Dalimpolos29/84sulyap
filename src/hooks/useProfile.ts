@@ -22,6 +22,8 @@ export type Profile = {
   hobbies_interests: string | null
   spouse_name: string | null
   children: string | null
+  profile_picture_url: string | null
+  then_picture_url: string | null
   // Add other profile fields as needed
 }
 
