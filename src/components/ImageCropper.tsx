@@ -89,8 +89,12 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
         const imgHeight = img.height
         
         // Calculate face center relative to image size
-        const faceX = (face.topLeft[0] + face.bottomRight[0]) / 2
-        const faceY = (face.topLeft[1] + face.bottomRight[1]) / 2
+        // Use type assertion to handle the Tensor1D | [number, number] union type
+        const topLeft = face.topLeft as [number, number]
+        const bottomRight = face.bottomRight as [number, number]
+        
+        const faceX = (topLeft[0] + bottomRight[0]) / 2
+        const faceY = (topLeft[1] + bottomRight[1]) / 2
         
         // Convert to percentage (which is what react-easy-crop uses)
         const cropX = ((faceX / imgWidth) - 0.5) * 100
@@ -100,8 +104,8 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
         setCrop({ x: cropX, y: cropY })
         
         // Calculate appropriate zoom based on face size
-        const faceWidth = face.bottomRight[0] - face.topLeft[0]
-        const faceHeight = face.bottomRight[1] - face.topLeft[1]
+        const faceWidth = bottomRight[0] - topLeft[0]
+        const faceHeight = bottomRight[1] - topLeft[1]
         const faceDimension = Math.max(faceWidth, faceHeight)
         
         // Set zoom to make face fill about 70% of the crop area
