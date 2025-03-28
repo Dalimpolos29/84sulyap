@@ -2,6 +2,9 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
+import ImageRotateIcon from './icons/image-rotate.svg'
+import * as tf from '@tensorflow/tfjs'
+import * as blazeface from '@tensorflow-models/blazeface'
 
 // Define the Area type locally since we can't import it directly
 interface Area {
@@ -21,6 +24,9 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1.2)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [rotation, setRotation] = useState(0)
+  const [showRotationSlider, setShowRotationSlider] = useState(false)
+  const [detectingFace, setDetectingFace] = useState(false)
   const cropperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [cropSize, setCropSize] = useState({ width: 300, height: 300 })
@@ -43,14 +49,72 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
     }
   }, [])
 
-  // Center the image when it's loaded
+  // Load model and detect face when image changes
   useEffect(() => {
     if (image) {
       // Reset zoom and position when image changes
       setCrop({ x: 0, y: 0 })
       setZoom(1.2)
+      
+      // Detect face
+      detectFace()
     }
   }, [image])
+
+  // Function to detect face and center crop on it
+  const detectFace = async () => {
+    try {
+      setDetectingFace(true)
+      
+      // Load model
+      await tf.ready()
+      const model = await blazeface.load()
+      
+      // Create image element to pass to the model
+      const img = new Image()
+      img.src = image
+      await new Promise((resolve) => {
+        img.onload = resolve
+      })
+      
+      // Get predictions
+      const predictions = await model.estimateFaces(img, false)
+      
+      if (predictions.length > 0) {
+        // Get the first face detected
+        const face = predictions[0]
+        
+        // Get image dimensions
+        const imgWidth = img.width
+        const imgHeight = img.height
+        
+        // Calculate face center relative to image size
+        const faceX = (face.topLeft[0] + face.bottomRight[0]) / 2
+        const faceY = (face.topLeft[1] + face.bottomRight[1]) / 2
+        
+        // Convert to percentage (which is what react-easy-crop uses)
+        const cropX = ((faceX / imgWidth) - 0.5) * 100
+        const cropY = ((faceY / imgHeight) - 0.5) * 100
+        
+        // Set crop to center on face
+        setCrop({ x: cropX, y: cropY })
+        
+        // Calculate appropriate zoom based on face size
+        const faceWidth = face.bottomRight[0] - face.topLeft[0]
+        const faceHeight = face.bottomRight[1] - face.topLeft[1]
+        const faceDimension = Math.max(faceWidth, faceHeight)
+        
+        // Set zoom to make face fill about 70% of the crop area
+        // (higher value = face appears smaller)
+        const newZoom = (imgWidth * 0.7) / faceDimension
+        setZoom(Math.max(1.2, Math.min(newZoom, 2.5))) // Limit between 1.2 and 2.5
+      }
+    } catch (error) {
+      console.error('Error detecting face:', error)
+    } finally {
+      setDetectingFace(false)
+    }
+  }
 
   const onCropChange = (newCrop: { x: number; y: number }) => {
     setCrop(newCrop)
@@ -142,12 +206,14 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
             </button>
             <h2 className="text-lg sm:text-xl font-semibold">Edit Photo</h2>
           </div>
-          <button
-            onClick={handleCrop}
-            className="px-3 py-1 sm:px-4 sm:py-1.5 text-white hover:bg-[#5D1315] rounded-md transition-colors text-sm sm:text-base"
-          >
-            Apply
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCrop}
+              className="px-3 py-1 sm:px-4 sm:py-1.5 text-white hover:bg-[#5D1315] rounded-md transition-colors text-sm sm:text-base"
+            >
+              Apply
+            </button>
+          </div>
         </div>
         
         <div ref={containerRef} className="relative aspect-square w-full bg-neutral-800 overflow-hidden">
@@ -167,6 +233,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
               maxZoom={5}
               cropSize={cropSize}
               restrictPosition={false}
+              rotation={rotation}
             />
           </div>
           
@@ -180,6 +247,40 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
               </div>
             </div>
           </div>
+          
+          {detectingFace && (
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                <span className="text-white text-sm">Detecting face...</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Rotation Controls */}
+        <div className="p-2 sm:p-3 text-white flex justify-between items-center border-t border-white/10">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowRotationSlider(!showRotationSlider)}
+              className="p-1 hover:bg-[#5D1315] rounded-full transition-colors"
+              aria-label="Toggle rotation slider"
+            >
+              <ImageRotateIcon className="w-5 h-5" />
+            </button>
+          </div>
+          {showRotationSlider && (
+            <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-3 bg-[#7D1A1D] px-4 py-2 rounded-full">
+              <input
+                type="range"
+                min="-180"
+                max="180"
+                value={rotation}
+                onChange={(e) => setRotation(Number(e.target.value))}
+                className="w-48 h-1 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
