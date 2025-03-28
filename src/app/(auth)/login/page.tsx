@@ -259,7 +259,7 @@ export default function LoginSignupPage() {
 
     // Reset interaction state on new form submission
     setFormInteracted(false)
-    
+
     // Reset errors
     setError("")
     setEmailError("")
@@ -569,8 +569,8 @@ export default function LoginSignupPage() {
     // Set success to ensure correct loading state in header 
     setSuccess("setting")
     try {
-      const { error } = await supabase.auth.updateUser({
-        password
+      const { error } = await supabase.auth.updateUser({ 
+        password 
       })
 
       if (error) throw error
@@ -760,14 +760,14 @@ export default function LoginSignupPage() {
               
               {/* Inner white background and image */}
               <div className="relative w-32 h-32 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-lg z-10 m-auto">
-                <Image
-                  src="/images/logo.svg"
-                  alt="UPIS 84 Logo"
-                  width={128}
-                  height={128}
-                  className="rounded-full object-cover"
-                  priority
-                />
+              <Image
+                src="/images/logo.svg"
+                alt="UPIS 84 Logo"
+                width={128}
+                height={128}
+                className="rounded-full object-cover"
+                priority
+              />
               </div>
             </div>
           </div>

@@ -3,8 +3,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 import ImageRotateIcon from './icons/image-rotate.svg'
-import * as tf from '@tensorflow/tfjs'
-import * as blazeface from '@tensorflow-models/blazeface'
 
 // Define the Area type locally since we can't import it directly
 interface Area {
@@ -26,7 +24,6 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [rotation, setRotation] = useState(0)
   const [showRotationSlider, setShowRotationSlider] = useState(false)
-  const [detectingFace, setDetectingFace] = useState(false)
   const cropperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [cropSize, setCropSize] = useState({ width: 300, height: 300 })
@@ -49,76 +46,14 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
     }
   }, [])
 
-  // Load model and detect face when image changes
+  // Center the image when it's loaded
   useEffect(() => {
     if (image) {
       // Reset zoom and position when image changes
       setCrop({ x: 0, y: 0 })
       setZoom(1.2)
-      
-      // Detect face
-      detectFace()
     }
   }, [image])
-
-  // Function to detect face and center crop on it
-  const detectFace = async () => {
-    try {
-      setDetectingFace(true)
-      
-      // Load model
-      await tf.ready()
-      const model = await blazeface.load()
-      
-      // Create image element to pass to the model
-      const img = new Image()
-      img.src = image
-      await new Promise((resolve) => {
-        img.onload = resolve
-      })
-      
-      // Get predictions
-      const predictions = await model.estimateFaces(img, false)
-      
-      if (predictions.length > 0) {
-        // Get the first face detected
-        const face = predictions[0]
-        
-        // Get image dimensions
-        const imgWidth = img.width
-        const imgHeight = img.height
-        
-        // Calculate face center relative to image size
-        // Use type assertion to handle the Tensor1D | [number, number] union type
-        const topLeft = face.topLeft as [number, number]
-        const bottomRight = face.bottomRight as [number, number]
-        
-        const faceX = (topLeft[0] + bottomRight[0]) / 2
-        const faceY = (topLeft[1] + bottomRight[1]) / 2
-        
-        // Convert to percentage (which is what react-easy-crop uses)
-        const cropX = ((faceX / imgWidth) - 0.5) * 100
-        const cropY = ((faceY / imgHeight) - 0.5) * 100
-        
-        // Set crop to center on face
-        setCrop({ x: cropX, y: cropY })
-        
-        // Calculate appropriate zoom based on face size
-        const faceWidth = bottomRight[0] - topLeft[0]
-        const faceHeight = bottomRight[1] - topLeft[1]
-        const faceDimension = Math.max(faceWidth, faceHeight)
-        
-        // Set zoom to make face fill about 70% of the crop area
-        // (higher value = face appears smaller)
-        const newZoom = (imgWidth * 0.7) / faceDimension
-        setZoom(Math.max(1.2, Math.min(newZoom, 2.5))) // Limit between 1.2 and 2.5
-      }
-    } catch (error) {
-      console.error('Error detecting face:', error)
-    } finally {
-      setDetectingFace(false)
-    }
-  }
 
   const onCropChange = (newCrop: { x: number; y: number }) => {
     setCrop(newCrop)
@@ -251,15 +186,6 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
               </div>
             </div>
           </div>
-          
-          {detectingFace && (
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-2">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-                <span className="text-white text-sm">Detecting face...</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Rotation Controls */}
