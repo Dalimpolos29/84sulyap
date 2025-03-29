@@ -221,7 +221,7 @@ function ProfileContent() {
         </div>
         
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[35%_65%] gap-6">
           {/* Profile Card */}
           <div className="bg-[#242424] rounded-xl p-6 flex flex-col items-center">
             <h2 className="text-2xl font-bold text-center mb-2">{fullName}</h2>
@@ -268,7 +268,7 @@ function ProfileContent() {
           </div>
           
           {/* Bio & Details Card */}
-          <div className="bg-[#242424] rounded-xl p-6 md:col-span-2">
+          <div className="bg-[#242424] rounded-xl p-6 md:col-span-1">
             <h2 className="text-xl font-bold mb-6 flex items-center justify-between">
               Bio & other details
               {isOwnProfile && (
