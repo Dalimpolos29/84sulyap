@@ -221,9 +221,9 @@ function ProfileContent() {
         </div>
         
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-[35%_65%] gap-6">
+        <div className="grid grid-cols-12 gap-6">
           {/* Profile Card */}
-          <div className="bg-[#242424] rounded-xl p-6 flex flex-col items-center">
+          <div className="bg-[#242424] rounded-xl p-6 flex flex-col items-center col-span-12 md:col-span-5">
             <h2 className="text-2xl font-bold text-center mb-2">{fullName}</h2>
             <div className="text-[#C9A335] text-sm font-medium mb-6">Alumni</div>
             
@@ -268,7 +268,7 @@ function ProfileContent() {
           </div>
           
           {/* Bio & Details Card */}
-          <div className="bg-[#242424] rounded-xl p-6 md:col-span-1">
+          <div className="bg-[#242424] rounded-xl p-6 col-span-12 md:col-span-7">
             <h2 className="text-xl font-bold mb-6 flex items-center justify-between">
               Bio & other details
               {isOwnProfile && (
@@ -340,16 +340,16 @@ function ProfileContent() {
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Featured Photos Section */}
-        <div className="mt-6 bg-[#242424] rounded-xl overflow-hidden">
-          <FeaturedPhotos 
-            userId={profile.id} 
-            userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
-            isOwnProfile={isOwnProfile}
-            onComplete={refetchProfile}
-          />
+          
+          {/* Featured Photos Section */}
+          <div className="mt-6 bg-[#242424] rounded-xl overflow-hidden col-span-12">
+            <FeaturedPhotos 
+              userId={profile.id} 
+              userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
+              isOwnProfile={isOwnProfile}
+              onComplete={refetchProfile}
+            />
+          </div>
         </div>
       </main>
       
