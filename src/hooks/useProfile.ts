@@ -34,6 +34,7 @@ type UseProfileReturn = {
   loading: boolean
   error: string | null
   refetch: () => Promise<void>
+  setProfile: React.Dispatch<React.SetStateAction<Profile | null>>
 }
 
 export function useProfile(user: User | null): UseProfileReturn {
@@ -78,7 +79,8 @@ export function useProfile(user: User | null): UseProfileReturn {
     profile,
     loading,
     error,
-    refetch: fetchProfile
+    refetch: fetchProfile,
+    setProfile
   }
 }
 
@@ -89,6 +91,37 @@ export function formatFullName(profile: Profile | null): string {
   const parts = []
   if (profile.first_name) parts.push(profile.first_name)
   if (profile.middle_name) parts.push(profile.middle_name)
+  if (profile.last_name) parts.push(profile.last_name)
+  if (profile.suffix_name) parts.push(profile.suffix_name)
+  
+  return parts.join(' ') || 'Unknown User'
+}
+
+// Utility function to format display name (first + last + suffix only)
+export function formatDisplayName(profile: Profile | null): string {
+  if (!profile) return 'Unknown User'
+  
+  const parts = []
+  if (profile.first_name) parts.push(profile.first_name)
+  if (profile.last_name) parts.push(profile.last_name)
+  if (profile.suffix_name) parts.push(profile.suffix_name)
+  
+  return parts.join(' ') || 'Unknown User'
+}
+
+// Utility function to format name with middle initial
+export function formatNameWithMiddleInitial(profile: Profile | null): string {
+  if (!profile) return 'Unknown User'
+  
+  const parts = []
+  if (profile.first_name) parts.push(profile.first_name)
+  
+  // Add middle initial if available
+  if (profile.middle_name) {
+    const middleInitial = profile.middle_name.charAt(0).toUpperCase() + '.'
+    parts.push(middleInitial)
+  }
+  
   if (profile.last_name) parts.push(profile.last_name)
   if (profile.suffix_name) parts.push(profile.suffix_name)
   
