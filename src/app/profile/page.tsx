@@ -608,8 +608,8 @@ function ProfileContent() {
               /* Edit Mode - Same layout as view mode */
               <div className="space-y-5">
                 <div className="p-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {/* First row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+                    {/* Row 1: Full Name | Birthday */}
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
@@ -619,6 +619,15 @@ function ProfileContent() {
                     </div>
                     
                     <div>
+                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
+                      <div className="flex items-center">
+                        <FaBirthdayCake className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <p className="font-medium break-words">{formatDate(profile.birthday)}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Row 2: Profession (spanning both columns) */}
+                    <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p>
                       <div className="flex items-center">
                         <FaBriefcase className="h-5 w-5 text-[#C9A335] mr-3" />
@@ -636,16 +645,13 @@ function ProfileContent() {
                         )}
                       </div>
                     </div>
-                    
-                    <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
-                      <div className="flex items-center">
-                        <FaBirthdayCake className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{formatDate(profile.birthday)}</p>
-                      </div>
+                  
+                    {/* Separator */}
+                    <div className="sm:col-span-2 mt-0 mb-0">
+                      <div className="border-t border-gray-700"></div>
                     </div>
                   
-                    {/* Second row */}
+                    {/* Row 3: Phone | Email */}
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Phone</p>
                       <div className="flex items-center">
@@ -680,13 +686,13 @@ function ProfileContent() {
                               placeholder="Your email address"
                             />
                           ) : (
-                            <p className="font-medium break-all">{profile.email || 'Not provided'}</p>
+                            <p className="font-medium break-all text-sm sm:text-base">{profile.email || 'Not provided'}</p>
                           )}
                         </div>
                       </div>
                     </div>
                     
-                    {/* Address (coming soon) - spans two columns */}
+                    {/* Row 4: Address (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Address</p>
                       <div className="flex items-center text-gray-500 italic">
@@ -694,7 +700,12 @@ function ProfileContent() {
                       </div>
                     </div>
                     
-                    {/* Third row */}
+                    {/* Separator */}
+                    <div className="sm:col-span-2 mt-0 mb-0">
+                      <div className="border-t border-gray-700"></div>
+                    </div>
+                    
+                    {/* Row 5: Spouse | Children */}
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Spouse</p>
                       <div className="flex items-center">
@@ -733,7 +744,12 @@ function ProfileContent() {
                       </div>
                     </div>
                   
-                    {/* Fourth row - Hobbies & Interests */}
+                    {/* Separator */}
+                    <div className="sm:col-span-2 mt-0 mb-0">
+                      <div className="border-t border-gray-700"></div>
+                    </div>
+                  
+                    {/* Row 6: Hobbies & Interests (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
                       <div className="pl-8">
@@ -843,20 +859,13 @@ function ProfileContent() {
               /* View Mode - Original Content */
               <div className="space-y-5">
                 <div className="p-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+                    {/* Row 1: Full Name | Birthday */}
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
                         <FaIdCard className="h-5 w-5 text-[#C9A335] mr-3" />
                         <p className="font-medium break-words">{nameWithMiddleInitial}</p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p>
-                      <div className="flex items-center">
-                        <FaBriefcase className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{profile.profession || 'Not provided'}</p>
                       </div>
                     </div>
                     
@@ -867,7 +876,22 @@ function ProfileContent() {
                         <p className="font-medium break-words">{formatDate(profile.birthday)}</p>
                       </div>
                     </div>
-                  
+                    
+                    {/* Row 2: Profession (spanning both columns) */}
+                    <div className="sm:col-span-2">
+                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p>
+                      <div className="flex items-center">
+                        <FaBriefcase className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <p className="font-medium break-words">{profile.profession || 'Not provided'}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Separator */}
+                    <div className="sm:col-span-2 mt-0 mb-0">
+                      <div className="border-t border-gray-700"></div>
+                    </div>
+                    
+                    {/* Row 3: Phone | Email */}
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Phone</p>
                       <div className="flex items-center">
@@ -881,11 +905,25 @@ function ProfileContent() {
                       <div className="flex items-start">
                         <IoIosMail className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium break-all">{profile.email || 'Not provided'}</p>
+                          <p className="font-medium break-all text-sm sm:text-base">{profile.email || 'Not provided'}</p>
                         </div>
                       </div>
                     </div>
                     
+                    {/* Row 4: Address (spanning both columns) */}
+                    <div className="sm:col-span-2">
+                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Address</p>
+                      <div className="flex items-center text-gray-500 italic">
+                        <p>Coming soon</p>
+                      </div>
+                    </div>
+                    
+                    {/* Separator */}
+                    <div className="sm:col-span-2 mt-0 mb-0">
+                      <div className="border-t border-gray-700"></div>
+                    </div>
+                    
+                    {/* Row 5: Spouse | Children */}
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Spouse</p>
                       <div className="flex items-center">
@@ -901,7 +939,13 @@ function ProfileContent() {
                         <p className="font-medium break-words">{profile.children || 'Not provided'}</p>
                       </div>
                     </div>
-                  
+                    
+                    {/* Separator */}
+                    <div className="sm:col-span-2 mt-0 mb-0">
+                      <div className="border-t border-gray-700"></div>
+                    </div>
+                    
+                    {/* Row 6: Hobbies & Interests (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
                       <div className="pl-8">
@@ -1042,4 +1086,4 @@ export default function ProfilePage() {
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
-`}</style> 
+`}</style>
