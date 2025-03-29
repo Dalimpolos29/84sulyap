@@ -224,12 +224,12 @@ function ProfileContent() {
         <div className="grid grid-cols-12 gap-6">
           {/* Profile Card */}
           <div className="bg-[#242424] rounded-xl p-6 flex flex-col items-center col-span-12 md:col-span-4">
-            <h2 className="text-2xl font-bold text-center mb-2">{fullName}</h2>
-            <div className="text-[#C9A335] text-sm font-medium mb-6">Alumni</div>
+            <h2 className="text-2xl font-bold text-center mb-1">{fullName}</h2>
+            <div className="text-[#C9A335] text-sm font-medium mb-4">Alumni</div>
             
-            <div className="relative mb-6">
+            <div className="relative w-[90%] mx-auto">
               {profile.profile_picture_url ? (
-                <div className="w-72 h-72 rounded-full overflow-hidden border-8 border-gray-700 shadow-lg">
+                <div className="aspect-square w-full rounded-full overflow-hidden border-[20px] border-gray-700/70 shadow-lg">
                   <div className="w-full h-full relative">
                     <Image
                       src={profile.profile_picture_url}
@@ -250,7 +250,7 @@ function ProfileContent() {
                   )}
                 </div>
               ) : (
-                <div className="w-72 h-72 rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-8 border-gray-700 shadow-lg">
+                <div className="aspect-square w-full rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-[20px] border-gray-700/70 shadow-lg">
                   {initials}
                   
                   {isOwnProfile && (
