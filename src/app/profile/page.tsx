@@ -637,7 +637,7 @@ function ProfileContent() {
                             name="profession"
                             value={editData.profession || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                             placeholder="Your profession"
                           />
                         ) : (
@@ -662,7 +662,7 @@ function ProfileContent() {
                             name="phone_number"
                             value={editData.phone_number || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                             placeholder="Your phone number"
                           />
                         ) : (
@@ -682,7 +682,7 @@ function ProfileContent() {
                               name="email"
                               value={editData.email || ''}
                               onChange={handleInputChange}
-                              className="w-full bg-[#333333] border-0 px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                              className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                               placeholder="Your email address"
                             />
                           ) : (
@@ -716,7 +716,7 @@ function ProfileContent() {
                             name="spouse_name"
                             value={editData.spouse_name || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                             placeholder="Spouse's name"
                           />
                         ) : (
@@ -735,7 +735,7 @@ function ProfileContent() {
                             name="children"
                             value={editData.children || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                             placeholder="Children's names"
                           />
                         ) : (
@@ -782,7 +782,7 @@ function ProfileContent() {
                                 value={currentHobby}
                                 onChange={handleHobbyInputChange}
                                 onKeyDown={handleHobbyKeyDown}
-                                className="w-full bg-[#333333] border-0 px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                                className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                                 placeholder="Add a hobby and press Enter"
                               />
                               {showSuggestions && filteredSuggestions.length > 0 && (
