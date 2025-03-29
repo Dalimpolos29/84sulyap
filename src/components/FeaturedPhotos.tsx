@@ -272,180 +272,16 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
     }
   }, [])
   
-  // Loading state
-  if (loading) {
-    return (
-      <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
-        <div className="bg-[#7D1A1D]/90 text-white py-3 px-6">
-          <h2 className="text-xl font-serif font-bold">Featured Photos</h2>
-        </div>
-        <div className="p-6 flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#7D1A1D]"></div>
-        </div>
-      </div>
-    )
-  }
-  
-  // Error state
-  if (fetchError) {
-    return (
-      <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
-        <div className="bg-[#7D1A1D]/90 text-white py-3 px-6">
-          <h2 className="text-xl font-serif font-bold">Featured Photos</h2>
-        </div>
-        <div className="p-6 text-red-600">
-          <p>Error loading featured photos.</p>
-        </div>
-      </div>
-    )
-  }
-  
-  // Editing: showing individual photos for captioning
-  if (isEditing && currentPhotoIndex >= 0) {
-    const currentPhoto = selectedPhotos[currentPhotoIndex]
-    
-    return (
-      <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
-        <div className="bg-[#7D1A1D]/90 text-white py-3 px-6 flex justify-between items-center">
-          <h2 className="text-xl font-serif font-bold">Featured Photo {currentPhotoIndex + 1}/{selectedPhotos.length}</h2>
-          <button 
-            onClick={handleCancel}
-            className="text-white/90 hover:text-white text-sm"
-          >
-            Cancel
-          </button>
-        </div>
-        
-        <div className="p-6">
-          <div className="w-full max-w-lg mx-auto mb-6">
-            <div 
-              className="aspect-square w-full rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center shadow-md mb-4"
-              style={{ 
-                backgroundImage: `url(${currentPhoto.preview})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            />
-            
-            <div className="w-full">
-              <label htmlFor="caption" className="block text-sm font-medium text-gray-700 mb-1">
-                Caption (optional)
-              </label>
-              <input
-                type="text"
-                id="caption"
-                value={currentPhoto.caption}
-                onChange={(e) => updateCaption(e.target.value)}
-                placeholder="Add a caption to this photo..."
-                className="w-full border-gray-300 rounded-md shadow-sm focus:border-[#7D1A1D] focus:ring focus:ring-[#7D1A1D]/20 transition"
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-center">
-            <button
-              onClick={confirmCurrentPhoto}
-              className="bg-[#7D1A1D] hover:bg-[#7D1A1D]/90 text-white py-2 px-6 rounded-md font-serif"
-            >
-              {currentPhotoIndex < selectedPhotos.length - 1 ? 'Confirm & Next' : 'Confirm Photo'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
-  // Editing: final confirmation screen showing all photos
-  if (isEditing && currentPhotoIndex === -2) {
-    return (
-      <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
-        <div className="bg-[#7D1A1D]/90 text-white py-3 px-6 flex justify-between items-center">
-          <h2 className="text-xl font-serif font-bold">Featured Photos Preview</h2>
-          <button 
-            onClick={handleCancel}
-            className="text-white/90 hover:text-white text-sm"
-          >
-            Cancel
-          </button>
-        </div>
-        
-        <div className="p-6">
-          <p className="text-gray-700 mb-4">Review your selected photos before uploading:</p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-            {selectedPhotos.map((photo, index) => (
-              <div key={index} className="aspect-square relative">
-                <div 
-                  className="w-full h-full rounded-lg overflow-hidden bg-gray-100 shadow-md"
-                  style={{ 
-                    backgroundImage: `url(${photo.preview})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                />
-                {photo.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white p-2 text-sm">
-                    {photo.caption}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {uploadError && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md mb-4">
-              {uploadError}
-            </div>
-          )}
-          
-          {uploadComplete && (
-            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md mb-4">
-              Photos uploaded successfully!
-            </div>
-          )}
-          
-          <div className="flex justify-between">
-            <button
-              onClick={handleBackToEdit}
-              className="text-[#7D1A1D] hover:text-[#7D1A1D]/80 py-2 px-4 rounded-md font-serif"
-              disabled={isUploading}
-            >
-              Back to Edit
-            </button>
-            
-            <button
-              onClick={uploadAllPhotos}
-              className="bg-[#7D1A1D] hover:bg-[#7D1A1D]/90 text-white py-2 px-6 rounded-md font-serif flex items-center"
-              disabled={isUploading || uploadComplete}
-            >
-              {isUploading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Uploading...
-                </>
-              ) : (
-                'Apply to Profile'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
   // Viewing state (default) - show gallery or placeholders
   return (
-    <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
-      <div className="bg-[#7D1A1D]/90 text-white py-3 px-6 flex justify-between items-center">
-        <h2 className="text-xl font-serif font-bold">Featured Photos</h2>
+    <div className="bg-[#242424] rounded-xl overflow-hidden">
+      <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
+        <h2 className="text-xl font-bold">Featured Photos</h2>
         
         {isOwnProfile && (
           <button 
             onClick={handleAddPhotosClick}
-            className="text-white hover:text-white/90 text-sm bg-[#7D1A1D]/80 hover:bg-[#7D1A1D] px-3 py-1 rounded-md"
+            className="text-white hover:text-white/90 text-sm bg-[#C9A335] hover:bg-[#C9A335]/90 px-3 py-1 rounded-md transition-colors"
           >
             {existingPhotos.length > 0 ? 'Change Photos' : 'Add Photos'}
           </button>
@@ -458,7 +294,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {existingPhotos.map((photo, index) => (
               <div key={index} className="flex flex-col items-center">
-                <div className="aspect-square w-full relative rounded-xl overflow-hidden bg-gray-100 shadow-md">
+                <div className="aspect-square w-full relative rounded-xl overflow-hidden bg-gray-800 shadow-md">
                   <Image
                     src={photo.url as string}
                     alt={photo.caption || `Featured photo ${index + 1}`}
@@ -469,7 +305,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
                 </div>
                 {photo.caption && (
                   <div className="mt-2 text-center">
-                    <p className="text-[#7D1A1D] font-medium">- {photo.caption}</p>
+                    <p className="text-[#C9A335] font-medium">- {photo.caption}</p>
                   </div>
                 )}
               </div>
@@ -478,9 +314,9 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             {/* Fill in placeholder cards if less than 3 photos */}
             {Array.from({ length: 3 - existingPhotos.length }).map((_, index) => (
               <div key={`placeholder-${index}`} className="flex flex-col items-center">
-                <div className="aspect-square w-full rounded-xl bg-gray-100 flex items-center justify-center shadow-sm border border-gray-200">
+                <div className="aspect-square w-full rounded-xl bg-gray-800 flex items-center justify-center shadow-md border border-gray-700">
                   <svg 
-                    className="w-10 h-10 text-gray-300" 
+                    className="w-10 h-10 text-gray-600" 
                     xmlns="http://www.w3.org/2000/svg" 
                     fill="none" 
                     viewBox="0 0 24 24" 
@@ -495,7 +331,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
         ) : (
           /* No photos yet, show placeholders */
           <>
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-gray-400 text-center mb-6">
               {isOwnProfile 
                 ? "Showcase up to 3 photos in your profile. Add photos to get started."
                 : "This user hasn't added any featured photos yet."}
@@ -505,10 +341,10 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
               {[1, 2, 3].map((i) => (
                 <div 
                   key={i} 
-                  className="aspect-square rounded-xl bg-gray-100 flex items-center justify-center shadow-sm border border-gray-200"
+                  className="aspect-square rounded-xl bg-gray-800 flex items-center justify-center shadow-md border border-gray-700"
                 >
                   <svg 
-                    className="w-10 h-10 text-gray-300" 
+                    className="w-10 h-10 text-gray-600" 
                     xmlns="http://www.w3.org/2000/svg" 
                     fill="none" 
                     viewBox="0 0 24 24" 
@@ -524,7 +360,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
               <div className="mt-6 flex justify-center">
                 <button
                   onClick={handleAddPhotosClick}
-                  className="bg-[#7D1A1D] hover:bg-[#7D1A1D]/90 text-white py-2 px-6 rounded-md font-serif flex items-center"
+                  className="bg-[#C9A335] hover:bg-[#C9A335]/90 text-white py-2 px-6 rounded-md font-medium flex items-center transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -548,4 +384,168 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
       />
     </div>
   )
+  
+  // Editing state screens also need updating to match the dark theme
+  if (isEditing && currentPhotoIndex >= 0) {
+    const currentPhoto = selectedPhotos[currentPhotoIndex]
+    
+    return (
+      <div className="bg-[#242424] rounded-xl overflow-hidden">
+        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
+          <h2 className="text-xl font-bold">Featured Photo {currentPhotoIndex + 1}/{selectedPhotos.length}</h2>
+          <button 
+            onClick={handleCancel}
+            className="text-gray-400 hover:text-white text-sm transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+        
+        <div className="p-6">
+          <div className="w-full max-w-lg mx-auto mb-6">
+            <div 
+              className="aspect-square w-full rounded-xl overflow-hidden bg-gray-800 flex items-center justify-center shadow-md mb-4"
+              style={{ 
+                backgroundImage: `url(${currentPhoto.preview})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            
+            <div className="w-full">
+              <label htmlFor="caption" className="block text-sm font-medium text-gray-400 mb-1">
+                Caption (optional)
+              </label>
+              <input
+                type="text"
+                id="caption"
+                value={currentPhoto.caption}
+                onChange={(e) => updateCaption(e.target.value)}
+                placeholder="Add a caption to this photo..."
+                className="w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm focus:border-[#C9A335] focus:ring focus:ring-[#C9A335]/20 transition"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-center">
+            <button
+              onClick={confirmCurrentPhoto}
+              className="bg-[#C9A335] hover:bg-[#C9A335]/90 text-white py-2 px-6 rounded-md font-medium transition-colors"
+            >
+              {currentPhotoIndex < selectedPhotos.length - 1 ? 'Confirm & Next' : 'Confirm Photo'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Final confirmation screen
+  if (isEditing && currentPhotoIndex === -2) {
+    return (
+      <div className="bg-[#242424] rounded-xl overflow-hidden">
+        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
+          <h2 className="text-xl font-bold">Featured Photos Preview</h2>
+          <button 
+            onClick={handleCancel}
+            className="text-gray-400 hover:text-white text-sm transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+        
+        <div className="p-6">
+          <p className="text-gray-400 mb-4">Review your selected photos before uploading:</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+            {selectedPhotos.map((photo, index) => (
+              <div key={index} className="aspect-square relative">
+                <div 
+                  className="w-full h-full rounded-xl overflow-hidden bg-gray-800 shadow-md"
+                  style={{ 
+                    backgroundImage: `url(${photo.preview})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+                {photo.caption && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2 text-sm">
+                    {photo.caption}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {uploadError && (
+            <div className="bg-[#2D1A21] border border-red-500 text-red-400 px-4 py-3 rounded-md mb-4">
+              {uploadError}
+            </div>
+          )}
+          
+          {uploadComplete && (
+            <div className="bg-[#1A2D1E] border border-green-500 text-green-400 px-4 py-3 rounded-md mb-4">
+              Photos uploaded successfully!
+            </div>
+          )}
+          
+          <div className="flex justify-between">
+            <button
+              onClick={handleBackToEdit}
+              className="text-gray-400 hover:text-white py-2 px-4 rounded-md font-medium transition-colors"
+              disabled={isUploading}
+            >
+              Back to Edit
+            </button>
+            
+            <button
+              onClick={uploadAllPhotos}
+              className="bg-[#C9A335] hover:bg-[#C9A335]/90 text-white py-2 px-6 rounded-md font-medium flex items-center transition-colors"
+              disabled={isUploading || uploadComplete}
+            >
+              {isUploading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Uploading...
+                </>
+              ) : (
+                'Apply to Profile'
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-[#242424] rounded-xl overflow-hidden">
+        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6">
+          <h2 className="text-xl font-bold">Featured Photos</h2>
+        </div>
+        <div className="p-6 flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A335]"></div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Error state
+  if (fetchError) {
+    return (
+      <div className="bg-[#242424] rounded-xl overflow-hidden">
+        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6">
+          <h2 className="text-xl font-bold">Featured Photos</h2>
+        </div>
+        <div className="p-6 text-red-400">
+          <p>Error loading featured photos.</p>
+        </div>
+      </div>
+    )
+  }
 } 
