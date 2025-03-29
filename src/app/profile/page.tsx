@@ -223,13 +223,13 @@ function ProfileContent() {
         {/* Main Content */}
         <div className="grid grid-cols-12 gap-6">
           {/* Profile Card */}
-          <div className="bg-[#242424] rounded-xl p-6 flex flex-col items-center col-span-12 md:col-span-5">
+          <div className="bg-[#242424] rounded-xl p-6 flex flex-col items-center col-span-12 md:col-span-4">
             <h2 className="text-2xl font-bold text-center mb-2">{fullName}</h2>
             <div className="text-[#C9A335] text-sm font-medium mb-6">Alumni</div>
             
             <div className="relative mb-6">
               {profile.profile_picture_url ? (
-                <div className="w-80 h-80 rounded-full overflow-hidden border-8 border-gray-700 shadow-lg">
+                <div className="w-72 h-72 rounded-full overflow-hidden border-8 border-gray-700 shadow-lg">
                   <div className="w-full h-full relative">
                     <Image
                       src={profile.profile_picture_url}
@@ -250,7 +250,7 @@ function ProfileContent() {
                   )}
                 </div>
               ) : (
-                <div className="w-80 h-80 rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-8 border-gray-700 shadow-lg">
+                <div className="w-72 h-72 rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-8 border-gray-700 shadow-lg">
                   {initials}
                   
                   {isOwnProfile && (
@@ -268,7 +268,7 @@ function ProfileContent() {
           </div>
           
           {/* Bio & Details Card */}
-          <div className="bg-[#242424] rounded-xl p-6 col-span-12 md:col-span-7">
+          <div className="bg-[#242424] rounded-xl p-6 col-span-12 md:col-span-8">
             <h2 className="text-xl font-bold mb-6 flex items-center justify-between">
               Bio & other details
               {isOwnProfile && (
