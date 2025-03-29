@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Camera } from 'lucide-react'
 import ImageCropper from '@/components/ImageCropper'
+import FeaturedPhotos from '@/components/FeaturedPhotos'
 
 // Function to format date strings for display
 const formatDate = (dateString: string | null): string => {
@@ -351,6 +352,16 @@ function ProfileContent() {
             </div>
           </div>
           
+          {/* Featured Photos Section */}
+          <div className="mb-6">
+            <FeaturedPhotos 
+              userId={profile.id} 
+              userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
+              isOwnProfile={isOwnProfile}
+              onComplete={refetchProfile}
+            />
+          </div>
+          
           {/* Profile Details Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Personal Information */}
@@ -397,6 +408,10 @@ function ProfileContent() {
                     <tr className="border-b border-gray-200">
                       <td className="py-3 text-gray-500 text-sm w-40">1st Year Section</td>
                       <td className="py-3 font-medium">{profile.section_1st_year || 'Not provided'}</td>
+                    </tr>
+                    <tr className="border-b border-gray-200">
+                      <td className="py-3 text-gray-500 text-sm">2nd Year Section</td>
+                      <td className="py-3 font-medium">{profile.section_2nd_year || 'Not provided'}</td>
                     </tr>
                     <tr className="border-b border-gray-200">
                       <td className="py-3 text-gray-500 text-sm">3rd Year Section</td>

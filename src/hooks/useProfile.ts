@@ -17,6 +17,7 @@ export type Profile = {
   section_3rd_year: string | null
   section_4th_year: string | null
   section_1st_year: string | null
+  section_2nd_year: string | null
   profession: string | null
   company: string | null
   hobbies_interests: string | null
