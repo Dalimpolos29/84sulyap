@@ -229,8 +229,8 @@ function ProfileContent() {
             
             <div className="relative w-[90%] mx-auto">
               {profile.profile_picture_url ? (
-                <div className="aspect-square w-full rounded-full overflow-hidden border-[20px] border-gray-700/70 shadow-lg">
-                  <div className="w-full h-full relative">
+                <div className="aspect-square w-full rounded-full overflow-hidden border-[20px] border-gray-700/70 relative shadow-lg">
+                  <div className="w-full h-full relative shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full overflow-hidden z-10">
                     <Image
                       src={profile.profile_picture_url}
                       alt={`${fullName}'s profile picture`}
@@ -242,7 +242,7 @@ function ProfileContent() {
                   {isOwnProfile && (
                     <button 
                       onClick={handleUploadClick}
-                      className="absolute right-4 bottom-4 bg-[#242424] rounded-full p-3 shadow-md opacity-90 hover:opacity-100 transition-opacity focus:outline-none"
+                      className="absolute right-[5%] bottom-[5%] bg-[#242424] rounded-full p-3 shadow-md opacity-90 hover:opacity-100 transition-opacity focus:outline-none z-20"
                       aria-label="Change profile picture"
                     >
                       <Camera size={24} className="text-[#C9A335]" />
@@ -250,13 +250,15 @@ function ProfileContent() {
                   )}
                 </div>
               ) : (
-                <div className="aspect-square w-full rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-[20px] border-gray-700/70 shadow-lg">
-                  {initials}
+                <div className="aspect-square w-full rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-[20px] border-gray-700/70 relative shadow-lg">
+                  <div className="w-full h-full absolute inset-0 flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full z-10">
+                    {initials}
+                  </div>
                   
                   {isOwnProfile && (
                     <button 
                       onClick={handleUploadClick}
-                      className="absolute right-4 bottom-4 bg-[#242424] rounded-full p-3 shadow-md opacity-90 hover:opacity-100 transition-opacity focus:outline-none"
+                      className="absolute right-[5%] bottom-[5%] bg-[#242424] rounded-full p-3 shadow-md opacity-90 hover:opacity-100 transition-opacity focus:outline-none z-20"
                       aria-label="Add profile picture"
                     >
                       <Camera size={24} className="text-[#C9A335]" />
