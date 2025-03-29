@@ -229,8 +229,12 @@ function ProfileContent() {
             
             <div className="relative w-[90%] mx-auto">
               {profile.profile_picture_url ? (
-                <div className="aspect-square w-full rounded-full overflow-hidden border-[20px] border-gray-700/70 relative shadow-lg">
-                  <div className="w-full h-full relative shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full overflow-hidden z-10">
+                <div className="aspect-square w-full relative">
+                  {/* Frame circle first (lower z-index) */}
+                  <div className="absolute inset-0 rounded-full border-[20px] border-gray-700/80 shadow-inner z-0"></div>
+                  
+                  {/* Image with shadow on top */}
+                  <div className="absolute inset-0 rounded-full overflow-hidden z-10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] transform -translate-y-1">
                     <Image
                       src={profile.profile_picture_url}
                       alt={`${fullName}'s profile picture`}
@@ -250,9 +254,13 @@ function ProfileContent() {
                   )}
                 </div>
               ) : (
-                <div className="aspect-square w-full rounded-full bg-gray-700 flex items-center justify-center text-7xl font-bold border-[20px] border-gray-700/70 relative shadow-lg">
-                  <div className="w-full h-full absolute inset-0 flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full z-10">
-                    {initials}
+                <div className="aspect-square w-full relative">
+                  {/* Frame circle first (lower z-index) */}
+                  <div className="absolute inset-0 rounded-full border-[20px] border-gray-700/80 shadow-inner z-0"></div>
+                  
+                  {/* Initials with shadow on top */}
+                  <div className="absolute inset-0 rounded-full overflow-hidden z-10 shadow-[0_4px_20px_rgba(0,0,0,0.5)] transform -translate-y-1 bg-gray-700 flex items-center justify-center">
+                    <span className="text-7xl font-bold">{initials}</span>
                   </div>
                   
                   {isOwnProfile && (
