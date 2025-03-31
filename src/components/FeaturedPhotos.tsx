@@ -274,8 +274,8 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
   
   // Viewing state (default) - show gallery or placeholders
   return (
-    <div className="bg-[#242424] rounded-xl overflow-hidden">
-      <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
+    <div className="bg-transparent border border-gray-700 rounded-xl overflow-hidden">
+      <div className="bg-transparent border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
         <h2 className="text-xl font-bold">Featured Photos</h2>
         
         {isOwnProfile && (
@@ -294,7 +294,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {existingPhotos.map((photo, index) => (
               <div key={index} className="flex flex-col items-center">
-                <div className="aspect-square w-full relative rounded-xl overflow-hidden bg-gray-800 shadow-md">
+                <div className="aspect-square w-full relative rounded-xl overflow-hidden bg-transparent border border-gray-700 shadow-md">
                   <Image
                     src={photo.url as string}
                     alt={photo.caption || `Featured photo ${index + 1}`}
@@ -314,7 +314,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             {/* Fill in placeholder cards if less than 3 photos */}
             {Array.from({ length: 3 - existingPhotos.length }).map((_, index) => (
               <div key={`placeholder-${index}`} className="flex flex-col items-center">
-                <div className="aspect-square w-full rounded-xl bg-gray-800 flex items-center justify-center shadow-md border border-gray-700">
+                <div className="aspect-square w-full rounded-xl bg-transparent border border-gray-700 flex items-center justify-center shadow-md">
                   <svg 
                     className="w-10 h-10 text-gray-600" 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -341,7 +341,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
               {[1, 2, 3].map((i) => (
                 <div 
                   key={i} 
-                  className="aspect-square rounded-xl bg-gray-800 flex items-center justify-center shadow-md border border-gray-700"
+                  className="aspect-square rounded-xl bg-transparent border border-gray-700 flex items-center justify-center shadow-md"
                 >
                   <svg 
                     className="w-10 h-10 text-gray-600" 
@@ -390,8 +390,8 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
     const currentPhoto = selectedPhotos[currentPhotoIndex]
     
     return (
-      <div className="bg-[#242424] rounded-xl overflow-hidden">
-        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
+      <div className="bg-transparent border border-gray-700 rounded-xl overflow-hidden">
+        <div className="bg-transparent border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
           <h2 className="text-xl font-bold">Featured Photo {currentPhotoIndex + 1}/{selectedPhotos.length}</h2>
           <button 
             onClick={handleCancel}
@@ -404,7 +404,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
         <div className="p-6">
           <div className="w-full max-w-lg mx-auto mb-6">
             <div 
-              className="aspect-square w-full rounded-xl overflow-hidden bg-gray-800 flex items-center justify-center shadow-md mb-4"
+              className="aspect-square w-full rounded-xl overflow-hidden bg-transparent border border-gray-700 flex items-center justify-center shadow-md mb-4"
               style={{ 
                 backgroundImage: `url(${currentPhoto.preview})`,
                 backgroundSize: 'cover',
@@ -422,7 +422,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
                 value={currentPhoto.caption}
                 onChange={(e) => updateCaption(e.target.value)}
                 placeholder="Add a caption to this photo..."
-                className="w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm focus:border-[#C9A335] focus:ring focus:ring-[#C9A335]/20 transition"
+                className="w-full bg-transparent border-gray-600 text-white rounded-md shadow-sm focus:border-[#C9A335] focus:ring focus:ring-[#C9A335]/20 transition"
               />
             </div>
           </div>
@@ -443,8 +443,8 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
   // Final confirmation screen
   if (isEditing && currentPhotoIndex === -2) {
     return (
-      <div className="bg-[#242424] rounded-xl overflow-hidden">
-        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
+      <div className="bg-transparent border border-gray-700 rounded-xl overflow-hidden">
+        <div className="bg-transparent border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
           <h2 className="text-xl font-bold">Featured Photos Preview</h2>
           <button 
             onClick={handleCancel}
@@ -461,7 +461,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             {selectedPhotos.map((photo, index) => (
               <div key={index} className="aspect-square relative">
                 <div 
-                  className="w-full h-full rounded-xl overflow-hidden bg-gray-800 shadow-md"
+                  className="w-full h-full rounded-xl overflow-hidden bg-transparent border border-gray-700 shadow-md"
                   style={{ 
                     backgroundImage: `url(${photo.preview})`,
                     backgroundSize: 'cover',
@@ -469,7 +469,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
                   }}
                 />
                 {photo.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2 text-sm">
+                  <div className="absolute bottom-0 left-0 right-0 bg-transparent bg-opacity-75 text-white p-2 text-sm">
                     {photo.caption}
                   </div>
                 )}
@@ -478,13 +478,13 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
           </div>
           
           {uploadError && (
-            <div className="bg-[#2D1A21] border border-red-500 text-red-400 px-4 py-3 rounded-md mb-4">
+            <div className="bg-transparent border border-red-500 text-red-400 px-4 py-3 rounded-md mb-4">
               {uploadError}
             </div>
           )}
           
           {uploadComplete && (
-            <div className="bg-[#1A2D1E] border border-green-500 text-green-400 px-4 py-3 rounded-md mb-4">
+            <div className="bg-transparent border border-green-500 text-green-400 px-4 py-3 rounded-md mb-4">
               Photos uploaded successfully!
             </div>
           )}
@@ -524,8 +524,8 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
   // Loading state
   if (loading) {
     return (
-      <div className="bg-[#242424] rounded-xl overflow-hidden">
-        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6">
+      <div className="bg-transparent border border-gray-700 rounded-xl overflow-hidden">
+        <div className="bg-transparent border-b border-gray-700 text-white py-3 px-6">
           <h2 className="text-xl font-bold">Featured Photos</h2>
         </div>
         <div className="p-6 flex justify-center items-center h-64">
@@ -538,8 +538,8 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
   // Error state
   if (fetchError) {
     return (
-      <div className="bg-[#242424] rounded-xl overflow-hidden">
-        <div className="bg-[#242424] border-b border-gray-700 text-white py-3 px-6">
+      <div className="bg-transparent border border-gray-700 rounded-xl overflow-hidden">
+        <div className="bg-transparent border-b border-gray-700 text-white py-3 px-6">
           <h2 className="text-xl font-bold">Featured Photos</h2>
         </div>
         <div className="p-6 text-red-400">

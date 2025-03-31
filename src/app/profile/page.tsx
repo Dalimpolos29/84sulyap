@@ -9,10 +9,11 @@ import Image from 'next/image'
 import { Camera } from 'lucide-react'
 import ImageCropper from '@/components/ImageCropper'
 import FeaturedPhotos from '@/components/FeaturedPhotos'
-import { FaIdCard, FaBriefcase, FaPhone, FaChildren } from "react-icons/fa6";
+import { FaIdCard, FaBriefcase, FaPhone, FaChildren, FaLocationDot } from "react-icons/fa6";
 import { FaBirthdayCake } from "react-icons/fa";
 import { IoIosMail } from "react-icons/io";
 import { GiBigDiamondRing } from "react-icons/gi";
+import AddressInput from '@/components/ui/AddressInput'
 
 // Function to format date strings for display
 const formatDate = (dateString: string | null): string => {
@@ -90,6 +91,18 @@ const COMMON_HOBBIES = [
   'Collecting Stamps', 'Knitting', 'Sewing', 'Woodworking'
 ];
 
+// First year section options
+const FIRST_YEAR_SECTIONS = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
+
+// Second year section options
+const SECOND_YEAR_SECTIONS = ['Cricket', 'Cicada', 'Beetle', 'Dragonfly', 'Gasshoper', 'Firefly', 'Ladybug', 'Honeybee', 'Butterfly'];
+
+// Third year section options
+const THIRD_YEAR_SECTIONS = ['Silver', 'Platinum', 'Magnanese', 'Gold', 'Calcium', 'Sodium', 'Lithium', 'Iron', 'Copper'];
+
+// Fourth year section options
+const FOURTH_YEAR_SECTIONS = ['Acacia', 'Agoho', 'Camagong', 'Dao', 'Ipil', 'Lauan', 'Molave', 'Narra', 'Tanguile'];
+
 // Helper function to determine hobby category
 const getHobbyCategory = (hobby: string): string => {
   const hobbyLower = hobby.toLowerCase();
@@ -114,13 +127,19 @@ function ProfileContent() {
   const supabase = createClient()
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [editingSections, setEditingSections] = useState(false)
   const [editData, setEditData] = useState({
     profession: '',
     email: '',
     phone_number: '',
     spouse_name: '',
     children: '',
-    hobbies_interests: ''
+    hobbies_interests: '',
+    section_1st_year: '',
+    section_2nd_year: '',
+    section_3rd_year: '',
+    section_4th_year: '',
+    address: ''
   })
   const [isSaving, setIsSaving] = useState(false)
   
@@ -220,7 +239,12 @@ function ProfileContent() {
         phone_number: profile.phone_number || '',
         spouse_name: profile.spouse_name || '',
         children: profile.children || '',
-        hobbies_interests: profile.hobbies_interests || ''
+        hobbies_interests: profile.hobbies_interests || '',
+        section_1st_year: profile.section_1st_year || '',
+        section_2nd_year: profile.section_2nd_year || '',
+        section_3rd_year: profile.section_3rd_year || '',
+        section_4th_year: profile.section_4th_year || '',
+        address: profile.address || ''
       });
       
       // Parse hobbies from the hobbies_interests field
@@ -241,7 +265,7 @@ function ProfileContent() {
   }, [profile, supabase.auth])
   
   // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setEditData(prev => ({ ...prev, [name]: value }))
   }
@@ -254,7 +278,6 @@ function ProfileContent() {
       setIsSaving(true)
       
       const formattedHobbies = formatHobbies(selectedHobbies);
-      console.log('Formatted hobbies (inspect type):', formattedHobbies, 'Type:', typeof formattedHobbies, 'Is array:', Array.isArray(formattedHobbies));
       
       const updatedData = {
         profession: editData.profession,
@@ -262,7 +285,12 @@ function ProfileContent() {
         phone_number: editData.phone_number,
         spouse_name: editData.spouse_name,
         children: editData.children,
-        hobbies_interests: formattedHobbies
+        hobbies_interests: formattedHobbies,
+        section_1st_year: editData.section_1st_year,
+        section_2nd_year: editData.section_2nd_year,
+        section_3rd_year: editData.section_3rd_year,
+        section_4th_year: editData.section_4th_year,
+        address: editData.address
       };
       
       console.log('Saving profile data:', updatedData);
@@ -336,7 +364,12 @@ function ProfileContent() {
         phone_number: profile.phone_number || '',
         spouse_name: profile.spouse_name || '',
         children: profile.children || '',
-        hobbies_interests: profile.hobbies_interests || ''
+        hobbies_interests: profile.hobbies_interests || '',
+        section_1st_year: profile.section_1st_year || '',
+        section_2nd_year: profile.section_2nd_year || '',
+        section_3rd_year: profile.section_3rd_year || '',
+        section_4th_year: profile.section_4th_year || '',
+        address: profile.address || ''
       })
     }
     setIsEditing(false)
@@ -436,6 +469,107 @@ function ProfileContent() {
     fileInputRef.current?.click()
   }
 
+  // Section-specific functions
+  const startEditingSections = () => {
+    setEditingSections(true);
+  };
+
+  const cancelEditingSections = () => {
+    // Reset section values to original
+    if (profile) {
+      setEditData(prev => ({
+        ...prev,
+        section_1st_year: profile.section_1st_year || '',
+        section_2nd_year: profile.section_2nd_year || '',
+        section_3rd_year: profile.section_3rd_year || '',
+        section_4th_year: profile.section_4th_year || ''
+      }));
+    }
+    setEditingSections(false);
+  };
+
+  const saveSectionChanges = async () => {
+    if (!profile) return;
+    
+    try {
+      // Update only the section fields
+      const updatedData = {
+        section_1st_year: editData.section_1st_year,
+        section_2nd_year: editData.section_2nd_year,
+        section_3rd_year: editData.section_3rd_year,
+        section_4th_year: editData.section_4th_year
+      };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedData)
+        .eq('id', profile.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Refresh profile data
+      await refetchProfile();
+      
+      // Exit editing mode
+      setEditingSections(false);
+    } catch (error: any) {
+      console.error('Error saving section changes:', error);
+      alert('Failed to save section changes. Please try again.');
+    }
+  };
+
+  // Check if any section has been changed from the original
+  const hasChangedSections = () => {
+    if (!profile) return false;
+    
+    return (
+      editData.section_1st_year !== (profile.section_1st_year || '') ||
+      editData.section_2nd_year !== (profile.section_2nd_year || '') ||
+      editData.section_3rd_year !== (profile.section_3rd_year || '') ||
+      editData.section_4th_year !== (profile.section_4th_year || '')
+    );
+  };
+
+  // Add these state declarations near the top with other state declarations
+  const [childrenList, setChildrenList] = useState<string[]>([])
+  const [currentChild, setCurrentChild] = useState('')
+
+  // Add this effect with other useEffect hooks
+  useEffect(() => {
+    if (profile) {
+      // Parse children string into array
+      setChildrenList(profile.children ? profile.children.split(',').map(child => child.trim()).filter(Boolean) : [])
+    }
+  }, [profile])
+
+  // Add these functions before the return statement
+  const addChild = (childName: string) => {
+    const trimmedName = childName.trim()
+    if (!trimmedName || childrenList.includes(trimmedName)) return
+    
+    const newList = [...childrenList, trimmedName]
+    setChildrenList(newList)
+    setCurrentChild('')
+    // Update editData to keep it in sync
+    setEditData(prev => ({ ...prev, children: newList.join(', ') }))
+  }
+
+  const removeChild = (indexToRemove: number) => {
+    const newList = childrenList.filter((_, index) => index !== indexToRemove)
+    setChildrenList(newList)
+    // Update editData to keep it in sync
+    setEditData(prev => ({ ...prev, children: newList.join(', ') }))
+  }
+
+  const handleChildKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && currentChild.trim()) {
+      e.preventDefault()
+      addChild(currentChild)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -519,11 +653,12 @@ function ProfileContent() {
         {/* Main Content */}
         <div className="grid grid-cols-12 gap-6">
           {/* Profile Card */}
-          <div className="bg-[#242424] rounded-xl p-6 pb-3 sm:pb-6 flex flex-col items-center md:min-h-[30rem] col-span-12 md:col-span-5">
+          <div className="bg-transparent border border-gray-700 rounded-xl p-6 pb-3 sm:pb-6 flex flex-col items-center col-span-12 md:col-span-5 h-fit relative">
             <h2 className="text-3xl font-bold text-center mb-1">{displayName}</h2>
             <div className="text-[#C9A335] text-sm font-medium mb-3">Alumni</div>
             
-            <div className="relative w-full max-w-[98%] md:max-w-[90%] lg:max-w-[98%] mx-auto flex-1 flex items-center">
+            <div className="w-full max-w-[98%] md:max-w-[90%] lg:max-w-[98%] mx-auto mb-3">
+              {/* Profile picture or initials */}
                   {profile.profile_picture_url ? (
                 <div className="aspect-square w-full relative">
                   {/* Outer circle frame with gold color */}
@@ -572,16 +707,147 @@ function ProfileContent() {
                           aria-label="Add profile picture"
                         >
                         <Camera size={20} className="text-[#C9A335]" />
-                      </button>
+                        </button>
                     </div>
+                      )}
+                </div>
+                  )}
+                </div>
+            
+            {/* Display sections below profile picture */}
+            <div className="text-center mb-4 mt-2 relative">
+              {editingSections ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  <div className="flex items-center">
+                    <select
+                      name="section_1st_year"
+                      value={editData.section_1st_year || FIRST_YEAR_SECTIONS[0]}
+                      onChange={handleInputChange}
+                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-green-600"
+                    >
+                      {FIRST_YEAR_SECTIONS.map((section) => (
+                        <option key={section} value={section}>{section}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <select
+                      name="section_2nd_year"
+                      value={editData.section_2nd_year || SECOND_YEAR_SECTIONS[0]}
+                      onChange={handleInputChange}
+                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-amber-500"
+                    >
+                      {SECOND_YEAR_SECTIONS.map((section) => (
+                        <option key={section} value={section}>{section}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <select
+                      name="section_3rd_year"
+                      value={editData.section_3rd_year || THIRD_YEAR_SECTIONS[0]}
+                      onChange={handleInputChange}
+                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-red-600"
+                    >
+                      {THIRD_YEAR_SECTIONS.map((section) => (
+                        <option key={section} value={section}>{section}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <select
+                      name="section_4th_year"
+                      value={editData.section_4th_year || FOURTH_YEAR_SECTIONS[0]}
+                      onChange={handleInputChange}
+                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-blue-600"
+                    >
+                      {FOURTH_YEAR_SECTIONS.map((section) => (
+                        <option key={section} value={section}>{section}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {profile.section_1st_year ? (
+                    <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      {profile.section_1st_year}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-xs">-</span>
+                  )}
+                  
+                  {profile.section_2nd_year ? (
+                    <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {profile.section_2nd_year}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-xs">-</span>
+                  )}
+                  
+                  {profile.section_3rd_year ? (
+                    <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      {profile.section_3rd_year}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-xs">-</span>
+                  )}
+                  
+                  {profile.section_4th_year ? (
+                    <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      {profile.section_4th_year}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-xs">-</span>
                   )}
                 </div>
               )}
             </div>
-          </div>
-          
+            
+            {/* Edit Sections button - Moved to be relative to the card */}
+            {isOwnProfile && !editingSections && (
+              <button 
+                onClick={startEditingSections}
+                className="absolute bottom-3 right-6 text-gray-400 hover:text-[#C9A335] transition-colors flex items-center text-xs"
+                aria-label="Edit sections"
+              >
+                <span className="mr-1">Edit Sections</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                          </svg>
+                        </button>
+                      )}
+            
+            {isOwnProfile && editingSections && (
+              <button 
+                onClick={hasChangedSections() ? saveSectionChanges : cancelEditingSections}
+                className="absolute bottom-3 right-6 text-gray-400 hover:text-[#C9A335] transition-colors flex items-center text-xs"
+                aria-label={hasChangedSections() ? "Apply section changes" : "Cancel editing sections"}
+              >
+                {hasChangedSections() ? (
+                  <>
+                    <span className="mr-1">Apply</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-1">Cancel</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            )}
+              </div>
+              
           {/* Bio & Details Card */}
-          <div className="bg-[#242424] rounded-xl p-6 col-span-12 md:col-span-7">
+          <div className="bg-transparent border border-gray-700 rounded-xl p-6 col-span-12 md:col-span-7 relative">
             <h2 className="text-xl font-bold mb-6 flex items-center justify-between">
               {isOwnProfile ? "Personal Information" : "User Information"}
               {isOwnProfile && (
@@ -594,11 +860,11 @@ function ProfileContent() {
                   {isEditing ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
+                      </svg>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
+                      </svg>
                   )}
                 </button>
               )}
@@ -610,7 +876,7 @@ function ProfileContent() {
                 <div className="p-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
                     {/* Row 1: Full Name | Birthday */}
-                    <div>
+                      <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
                         <FaIdCard className="h-5 w-5 text-[#C9A335] mr-3" />
@@ -618,7 +884,7 @@ function ProfileContent() {
                       </div>
                     </div>
                     
-                    <div>
+                      <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
                       <div className="flex items-center">
                         <FaBirthdayCake className="h-5 w-5 text-[#C9A335] mr-3" />
@@ -652,7 +918,7 @@ function ProfileContent() {
                     </div>
                   
                     {/* Row 3: Phone | Email */}
-                    <div>
+                      <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Phone</p>
                       <div className="flex items-center">
                         <FaPhone className="h-5 w-5 text-[#C9A335] mr-3" />
@@ -662,6 +928,12 @@ function ProfileContent() {
                             name="phone_number"
                             value={editData.phone_number || ''}
                             onChange={handleInputChange}
+                            pattern="[0-9]*"
+                            onKeyPress={(e) => {
+                              if (!/[0-9]/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
                             className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
                             placeholder="Your phone number"
                           />
@@ -695,8 +967,16 @@ function ProfileContent() {
                     {/* Row 4: Address (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Address</p>
-                      <div className="flex items-center text-gray-500 italic">
-                        <p>Coming soon</p>
+                      <div className="flex items-start">
+                        <FaLocationDot className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
+                        <div className="flex-1">
+                          <AddressInput
+                            value={profile.address}
+                            onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
+                            isEditing={isEditing}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -706,7 +986,7 @@ function ProfileContent() {
                     </div>
                     
                     {/* Row 5: Spouse | Children */}
-                    <div>
+                      <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Spouse</p>
                       <div className="flex items-center">
                         <GiBigDiamondRing className="h-5 w-5 text-[#C9A335] mr-3" />
@@ -724,136 +1004,110 @@ function ProfileContent() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Children</p>
-                      <div className="flex items-center">
-                        <FaChildren className="h-5 w-5 text-[#C9A335] mr-3" />
+                      <div className="flex items-start">
+                        <FaChildren className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
                         {isEditing ? (
-                          <input
-                            type="text"
-                            name="children"
-                            value={editData.children || ''}
-                            onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
-                            placeholder="Children's names"
-                          />
+                          <div className="flex-1">
+                            <div className="flex flex-wrap gap-1 items-center">
+                              {childrenList.map((child, index) => (
+                                <span 
+                                  key={index}
+                                  className="bg-[#333333] text-white text-xs px-2 py-0.5 rounded border border-gray-600 flex items-center"
+                                >
+                                  {child}
+                                  <button 
+                                    onClick={() => removeChild(index)}
+                                    className="ml-1 text-white/80 hover:text-white"
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                              <input
+                                type="text"
+                                value={currentChild}
+                                onChange={(e) => setCurrentChild(e.target.value)}
+                                onKeyDown={handleChildKeyDown}
+                                className="bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium w-full"
+                                placeholder="Add child's name and press Enter"
+                              />
+                            </div>
+                          </div>
                         ) : (
                           <p className="font-medium break-words">{profile.children || 'Not provided'}</p>
                         )}
                       </div>
                     </div>
-                  
+
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
                       <div className="border-t border-gray-700"></div>
                     </div>
-                  
+                    
                     {/* Row 6: Hobbies & Interests (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
-                      <div className="pl-8">
-                        {isEditing ? (
-                          <div className="w-full">
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {selectedHobbies.map((hobby) => {
-                                const category = getHobbyCategory(hobby);
-                                return (
-                                  <span 
-                                    key={hobby}
-                                    className={`${HOBBY_CATEGORIES[category].color} text-white text-xs px-2 py-0.5 rounded-full flex items-center`}
+                      <div>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {selectedHobbies.map((hobby) => {
+                            const category = getHobbyCategory(hobby);
+                            return (
+                              <span 
+                                key={hobby}
+                                className={`${HOBBY_CATEGORIES[category].color} text-white text-xs px-2 py-0.5 rounded-full flex items-center`}
+                              >
+                                {hobby}
+                                {isEditing && (
+                                  <button 
+                                    onClick={() => removeHobby(hobby)}
+                                    className="ml-1 text-white/80 hover:text-white"
+                                    type="button"
                                   >
-                                    {hobby}
-                                    <button 
-                                      onClick={() => removeHobby(hobby)}
-                                      className="ml-1 text-white/80 hover:text-white"
-                                      type="button"
-                                    >
-                                      ×
-                                    </button>
-                                  </span>
-                                );
-                              })}
-                            </div>
-                            
-                            <div className="relative">
-                              <input
-                                type="text"
-                                value={currentHobby}
-                                onChange={handleHobbyInputChange}
-                                onKeyDown={handleHobbyKeyDown}
-                                className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
-                                placeholder="Add a hobby and press Enter"
-                              />
-                              {showSuggestions && filteredSuggestions.length > 0 && (
-                                <div 
-                                  ref={suggestionsRef} 
-                                  className="absolute z-10 mt-1 w-full max-h-28 overflow-y-auto bg-[#1E1E1E] rounded shadow-md"
-                                >
-                                  {filteredSuggestions.map((hobby) => (
-                                    <button
-                                      key={hobby}
-                                      onClick={() => addHobby(hobby)}
-                                      className="text-left text-sm text-gray-300 hover:bg-[#333333] px-2 py-1 w-full"
-                                      type="button"
-                                    >
-                                      {hobby}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {selectedHobbies.length > 0 ? (
-                              selectedHobbies.map((hobby) => {
-                                const category = getHobbyCategory(hobby);
-                                return (
-                                  <span 
-                                    key={hobby}
-                                    className={`${HOBBY_CATEGORIES[category].color} text-white text-xs px-2 py-0.5 rounded-full`}
-                                  >
-                                    {hobby}
-                                  </span>
-                                );
-                              })
-                            ) : (
-                              <p className="font-medium">Not provided</p>
-                            )}
-                          </div>
-                        )}
+                                    ×
+                                  </button>
+                                )}
+                              </span>
+                            );
+                          })}
                       </div>
+                        
+                        {isEditing && (
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={currentHobby}
+                              onChange={handleHobbyInputChange}
+                              onKeyDown={handleHobbyKeyDown}
+                              className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                              placeholder="Add a hobby and press Enter"
+                            />
+                            {showSuggestions && filteredSuggestions.length > 0 && (
+                              <div 
+                                ref={suggestionsRef} 
+                                className="absolute z-10 mt-1 w-full max-h-28 overflow-y-auto bg-[#1E1E1E] rounded shadow-md border border-gray-700"
+                              >
+                                {filteredSuggestions.map((hobby) => (
+                                  <button
+                                    key={hobby}
+                                    onClick={() => addHobby(hobby)}
+                                    className="text-left text-sm text-gray-300 hover:bg-[#333333] px-2 py-1 w-full"
+                                    type="button"
+                                  >
+                                    {hobby}
+                                  </button>
+                                ))}
+                    </div>
+                  )}
+                </div>
+                        )}
+              </div>
                     </div>
                   </div>
                 </div>
-                
-                {isEditing && (
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 text-white hover:text-gray-300 transition-colors"
-                      disabled={isSaving}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveProfile}
-                      className="px-4 py-2 text-[#C9A335] hover:text-[#E5BD4F] transition-colors flex items-center"
-                      disabled={isSaving}
-                    >
-                      {isSaving ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-[#C9A335]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Saving...
-                        </>
-                      ) : 'Save'}
-                    </button>
-                  </div>
-                )}
               </div>
             ) : (
               /* View Mode - Original Content */
@@ -866,15 +1120,15 @@ function ProfileContent() {
                       <div className="flex items-center">
                         <FaIdCard className="h-5 w-5 text-[#C9A335] mr-3" />
                         <p className="font-medium break-words">{nameWithMiddleInitial}</p>
-                      </div>
-                    </div>
-                    
-                    <div>
+            </div>
+          </div>
+          
+                      <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
                       <div className="flex items-center">
                         <FaBirthdayCake className="h-5 w-5 text-[#C9A335] mr-3" />
                         <p className="font-medium break-words">{formatDate(profile.birthday)}</p>
-                      </div>
+              </div>
                     </div>
                     
                     {/* Row 2: Profession (spanning both columns) */}
@@ -883,16 +1137,16 @@ function ProfileContent() {
                       <div className="flex items-center">
                         <FaBriefcase className="h-5 w-5 text-[#C9A335] mr-3" />
                         <p className="font-medium break-words">{profile.profession || 'Not provided'}</p>
-                      </div>
-                    </div>
-                    
+              </div>
+            </div>
+            
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
                       <div className="border-t border-gray-700"></div>
-                    </div>
-                    
+              </div>
+                  
                     {/* Row 3: Phone | Email */}
-                    <div>
+                      <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Phone</p>
                       <div className="flex items-center">
                         <FaPhone className="h-5 w-5 text-[#C9A335] mr-3" />
@@ -906,22 +1160,30 @@ function ProfileContent() {
                         <IoIosMail className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium break-all text-sm sm:text-base">{profile.email || 'Not provided'}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
+              </div>
+            </div>
+          </div>
+          
                     {/* Row 4: Address (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Address</p>
-                      <div className="flex items-center text-gray-500 italic">
-                        <p>Coming soon</p>
-                      </div>
-                    </div>
-                    
+                      <div className="flex items-start">
+                        <FaLocationDot className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
+                        <div className="flex-1">
+                          <AddressInput
+                            value={profile.address}
+                            onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
+                            isEditing={isEditing}
+                            className="w-full"
+                          />
+            </div>
+            </div>
+          </div>
+          
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
                       <div className="border-t border-gray-700"></div>
-                    </div>
+            </div>
                     
                     {/* Row 5: Spouse | Children */}
                     <div>
@@ -929,9 +1191,9 @@ function ProfileContent() {
                       <div className="flex items-center">
                         <GiBigDiamondRing className="h-5 w-5 text-[#C9A335] mr-3" />
                         <p className="font-medium break-words">{profile.spouse_name || 'Not provided'}</p>
-                      </div>
-                    </div>
-                    
+            </div>
+          </div>
+
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Children</p>
                       <div className="flex items-center">
@@ -939,7 +1201,7 @@ function ProfileContent() {
                         <p className="font-medium break-words">{profile.children || 'Not provided'}</p>
                       </div>
                     </div>
-                    
+
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
                       <div className="border-t border-gray-700"></div>
@@ -948,7 +1210,7 @@ function ProfileContent() {
                     {/* Row 6: Hobbies & Interests (spanning both columns) */}
                     <div className="sm:col-span-2">
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
-                      <div className="pl-8">
+                      <div>
                         <div className="flex flex-wrap gap-1">
                           {selectedHobbies.length > 0 ? (
                             selectedHobbies.map((hobby) => {
@@ -972,10 +1234,31 @@ function ProfileContent() {
                 </div>
               </div>
             )}
+            
+            {/* Save Button - Floating at bottom */}
+            {isEditing && (
+            <button
+                onClick={handleSaveProfile}
+                className="absolute bottom-3 right-6 text-green-500 hover:text-green-400 transition-colors flex items-center text-sm"
+                disabled={isSaving}
+                aria-label="Save changes"
+              >
+                {isSaving ? (
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+            </button>
+            )}
           </div>
           
           {/* Featured Photos Section */}
-          <div className="mt-6 bg-[#242424] rounded-xl overflow-hidden col-span-12">
+          <div className="mt-6 bg-transparent border border-gray-700 rounded-xl overflow-hidden col-span-12">
             <FeaturedPhotos 
               userId={profile.id} 
               userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
@@ -1086,4 +1369,4 @@ export default function ProfilePage() {
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
-`}</style>
+`}</style> 

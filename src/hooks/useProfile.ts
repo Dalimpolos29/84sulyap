@@ -10,10 +10,11 @@ export type Profile = {
   first_name: string | null
   middle_name: string | null
   last_name: string | null
-  suffix_name: string | null
+  suffix: string | null
   email: string | null
   birthday: string | null
   phone_number: string | null
+  address: string | null
   section_3rd_year: string | null
   section_4th_year: string | null
   section_1st_year: string | null
@@ -92,21 +93,16 @@ export function formatFullName(profile: Profile | null): string {
   if (profile.first_name) parts.push(profile.first_name)
   if (profile.middle_name) parts.push(profile.middle_name)
   if (profile.last_name) parts.push(profile.last_name)
-  if (profile.suffix_name) parts.push(profile.suffix_name)
+  if (profile.suffix) parts.push(profile.suffix)
   
   return parts.join(' ') || 'Unknown User'
 }
 
-// Utility function to format display name (first + last + suffix only)
+// Utility function to format display name (first name only)
 export function formatDisplayName(profile: Profile | null): string {
   if (!profile) return 'Unknown User'
   
-  const parts = []
-  if (profile.first_name) parts.push(profile.first_name)
-  if (profile.last_name) parts.push(profile.last_name)
-  if (profile.suffix_name) parts.push(profile.suffix_name)
-  
-  return parts.join(' ') || 'Unknown User'
+  return profile.first_name || 'Unknown User'
 }
 
 // Utility function to format name with middle initial
@@ -123,7 +119,7 @@ export function formatNameWithMiddleInitial(profile: Profile | null): string {
   }
   
   if (profile.last_name) parts.push(profile.last_name)
-  if (profile.suffix_name) parts.push(profile.suffix_name)
+  if (profile.suffix) parts.push(profile.suffix)
   
   return parts.join(' ') || 'Unknown User'
 }

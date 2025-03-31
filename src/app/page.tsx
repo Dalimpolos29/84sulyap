@@ -18,7 +18,7 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -32,7 +32,7 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-  
+
   // Return a loading state while profile is being fetched
   if (profileLoading) {
     return (
@@ -41,7 +41,7 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
       </div>
     )
   }
-  
+
   return (
     <div 
       className="min-h-screen flex flex-col"
@@ -130,7 +130,7 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
                     </svg>
                     Account Settings
                   </button>
-                  <button 
+              <button
                     onClick={() => {
                       handleSignOut()
                       setDropdownOpen(false)
@@ -143,7 +143,7 @@ function DashboardContent({ session, handleSignOut }: { session: any, handleSign
                       <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
                     Sign Out
-                  </button>
+              </button>
                 </div>
               </div>
             </div>

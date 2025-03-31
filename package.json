@@ -16,6 +16,7 @@
     "@types/lodash": "^4.17.16",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
+    "country-state-city": "^3.2.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.482.0",
     "next": "15.2.2",
