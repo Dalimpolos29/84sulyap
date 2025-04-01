@@ -26,6 +26,13 @@ export type Profile = {
   children: string | null
   profile_picture_url: string | null
   then_picture_url: string | null
+  privacy_settings: {
+    phone: boolean
+    email: boolean
+    address: boolean
+    spouse: boolean
+    children: boolean
+  } | null
   // Add other profile fields as needed
 }
 
