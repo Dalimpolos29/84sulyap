@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import Header from "@/components/layout/Header"
+import Footer from '@/components/layout/Footer'
 
 // Create a client component that handles verification
 function VerificationContent() {
@@ -160,6 +162,7 @@ function VerificationContent() {
         backgroundAttachment: "fixed",
       }}
     >
+      <Header />
       <div className="flex-1 flex items-center justify-center py-12 px-4 font-serif">
         <div className="max-w-md w-full flex flex-col items-center">
           {/* Fixed position container for logo */}
@@ -274,19 +277,7 @@ function VerificationContent() {
           </div>
         </div>
       </div>
-
-      {/* Add text-shadow utility class */}
-      <style jsx global>{`
-        .text-shadow {
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-      `}</style>
-
-      {/* Footer */}
-      <footer className="py-6 text-center text-gray-500 text-sm font-serif">
-        <p>© 2025 UPIS Batch '84 Alumni Portal</p>
-        <p>All Rights Reserved</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

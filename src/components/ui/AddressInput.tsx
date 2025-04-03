@@ -451,7 +451,8 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
   if (!isEditing) {
     // In view mode, only show non-empty values
     const displayValue = value ? formatAddress(parseAddress(value), true) : 'Not provided'
-    return <p className="font-medium break-words">{displayValue}</p>
+    const textColor = displayValue === 'Not provided' ? 'text-gray-500' : 'text-gray-800'
+    return <p className={`font-medium break-words ${textColor}`}>{displayValue}</p>
   }
 
   // Get suggestions for each field
@@ -493,16 +494,14 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
             }
           }}
           placeholder="Country"
-          className="w-[150px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+          className="w-[150px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
         />
         {showCountrySuggestions && countrySuggestions.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full bg-[#333333] border border-gray-700 rounded-md shadow-lg max-h-48 overflow-auto">
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-auto">
             {countrySuggestions.map((suggestion, index) => (
               <div
                 key={suggestion.value}
-                className={`px-2 py-1 cursor-pointer ${
-                  index === selectedCountryIndex ? 'bg-[#444444]' : 'hover:bg-[#444444]'
-                } text-white`}
+                className={`px-2 py-1 cursor-pointer ${index === selectedCountryIndex ? 'bg-gray-100' : 'hover:bg-gray-100'} text-gray-900`}
                 onClick={() => handleCountrySelect(suggestion)}
               >
                 {suggestion.label}
@@ -540,16 +539,14 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
           }}
           placeholder="State/Province"
           disabled={!selectedCountry}
-          className="w-[150px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium disabled:opacity-50"
+          className="w-[150px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400 disabled:opacity-50"
         />
         {showStateSuggestions && stateSuggestions.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full bg-[#333333] border border-gray-700 rounded-md shadow-lg max-h-48 overflow-auto">
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-auto">
             {stateSuggestions.map((suggestion, index) => (
               <div
                 key={suggestion.value}
-                className={`px-2 py-1 cursor-pointer ${
-                  index === selectedStateIndex ? 'bg-[#444444]' : 'hover:bg-[#444444]'
-                } text-white`}
+                className={`px-2 py-1 cursor-pointer ${index === selectedStateIndex ? 'bg-gray-100' : 'hover:bg-gray-100'} text-gray-900`}
                 onClick={() => handleStateSelect(suggestion)}
               >
                 {suggestion.label}
@@ -597,16 +594,14 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
           }}
           placeholder="City"
           disabled={!selectedState}
-          className="w-[150px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium disabled:opacity-50"
+          className="w-[150px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400 disabled:opacity-50"
         />
         {showCitySuggestions && citySuggestions.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full bg-[#333333] border border-gray-700 rounded-md shadow-lg max-h-48 overflow-auto">
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-auto">
             {citySuggestions.map((suggestion, index) => (
               <div
                 key={suggestion.value}
-                className={`px-2 py-1 cursor-pointer ${
-                  index === selectedCityIndex ? 'bg-[#444444]' : 'hover:bg-[#444444]'
-                } text-white`}
+                className={`px-2 py-1 cursor-pointer ${index === selectedCityIndex ? 'bg-gray-100' : 'hover:bg-gray-100'} text-gray-900`}
                 onClick={() => handleCitySelect(suggestion)}
               >
                 {suggestion.label}
@@ -625,7 +620,7 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
             onChange={(e) => handleBarangayChange(e.target.value)}
             placeholder="Barangay"
             disabled={!cityInput}
-            className="w-[150px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium disabled:opacity-50"
+            className="w-[150px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400 disabled:opacity-50"
           />
         </div>
       )}
@@ -635,7 +630,7 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
         value={fields.street}
         onChange={(e) => handleFieldChange('street', e.target.value)}
         placeholder="Street Address"
-        className="w-[200px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+        className="w-[200px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
       />
 
       <input
@@ -643,7 +638,7 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
         value={fields.unit}
         onChange={(e) => handleFieldChange('unit', e.target.value)}
         placeholder="Unit/Apt/House #"
-        className="w-[120px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+        className="w-[120px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
       />
 
       <input
@@ -651,7 +646,7 @@ export default function AddressInput({ value, onChange, isEditing, className }: 
         value={fields.postalCode}
         onChange={(e) => handleFieldChange('postalCode', e.target.value)}
         placeholder="zip code"
-        className="w-[90px] bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+        className="w-[90px] bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
       />
     </div>
   )

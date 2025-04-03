@@ -14,6 +14,8 @@ import { createClient } from "@/utils/supabase/client"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import { debounce } from "lodash"
 import { useRouter } from "next/navigation"
+import Header from "@/components/layout/Header"
+import Footer from '@/components/layout/Footer'
 
 export default function LoginSignupPage() {
   const router = useRouter()
@@ -711,26 +713,7 @@ export default function LoginSignupPage() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Header */}
-      <header className="bg-[#7D1A1D] text-white py-4">
-        <div className="w-full max-w-[1400px] mx-auto flex justify-between items-center px-4 sm:px-6 md:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border border-[#C9A335] shadow-md">
-              <Image
-                src="/images/logo.svg"
-                alt="UPIS 84 Logo"
-                width={48}
-                height={48}
-                className="rounded-full object-cover"
-                priority
-              />
-            </div>
-            <span className="font-serif font-bold text-xl">Sulyap84</span>
-          </Link>
-          <div className="text-white font-serif font-medium">UPIS Alumni Portal</div>
-        </div>
-      </header>
-
+      <Header />
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center py-12 px-4 font-serif">
         <div className="max-w-md w-full">
@@ -1504,11 +1487,7 @@ export default function LoginSignupPage() {
         }
       `}</style>
 
-      {/* Footer */}
-      <footer className="py-6 text-center text-gray-500 text-sm font-serif">
-        <p>© 2025 UPIS Batch '84 Alumni Portal</p>
-        <p>All Rights Reserved</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

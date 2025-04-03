@@ -274,7 +274,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
   
   // Viewing state (default) - show gallery or placeholders
   return (
-    <div className="bg-transparent border border-gray-700 rounded-xl overflow-hidden">
+    <div className="bg-transparent rounded-xl overflow-hidden">
       <div className="bg-transparent border-b border-gray-700 text-white py-3 px-6 flex justify-between items-center">
         <h2 className="text-xl font-bold">Featured Photos</h2>
         

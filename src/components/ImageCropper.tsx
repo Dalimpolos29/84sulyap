@@ -642,14 +642,14 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
       onWheel={(e) => e.stopPropagation()}
     >
-      <div ref={containerRef} className="relative w-full max-w-md bg-[#7D1A1D] rounded-lg overflow-hidden shadow-2xl font-['Google_Sans',Arial,sans-serif] text-[14px]">
-        <div className="p-3 text-white flex justify-between items-center border-b border-white/10">
+      <div ref={containerRef} className="relative w-full max-w-md bg-white rounded-lg overflow-hidden shadow-2xl font-['Google_Sans',Arial,sans-serif] text-[14px] text-gray-900">
+        <div className="p-3 text-[#7D1A1D] flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-2">
             <button 
               onClick={onCancel}
-              className="p-1 hover:bg-[#5D1315] rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7D1A1D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
             </button>
@@ -665,10 +665,10 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
         />
         
         {/* Main canvas for editing */}
-        <div className="relative bg-neutral-900 flex justify-center items-center overflow-hidden">
+        <div className="relative bg-gray-200 flex justify-center items-center overflow-hidden">
           {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
-              <div className="w-8 h-8 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+              <div className="w-8 h-8 border-2 border-t-transparent border-[#7D1A1D] rounded-full animate-spin"></div>
             </div>
           )}
           <canvas
@@ -686,7 +686,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
           
           {/* Debugging info - can be removed after fixing */}
           {!loading && !imageLoaded && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-white text-sm p-4 text-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 text-gray-700 text-sm p-4 text-center">
               <p>Failed to load image.</p>
               {errorMessage ? (
                 <p className="mt-2 text-xs opacity-80">{errorMessage}</p>
@@ -707,7 +707,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
           {/* Instructions */}
           {imageLoaded && (
             <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-              <div className="bg-[#7D1A1D]/70 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur">
+              <div className="bg-white/70 text-gray-700 text-xs px-3 py-1.5 rounded-full backdrop-blur border border-gray-300">
                 <span>Pinch or scroll to zoom • Drag to position</span>
               </div>
             </div>
@@ -715,7 +715,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
         </div>
         
         {/* Controls section */}
-        <div className="bg-[#7D1A1D] text-white">
+        <div className="bg-gray-50 text-gray-700 border-t border-gray-200">
           {/* Rotation slider - only shown when toggled */}
           {showRotationControls && (
             <div className="px-4 pt-3">
@@ -728,7 +728,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
                 onChange={(e) => setRotation(parseInt(e.target.value))}
                 onTouchStart={handleRotationSliderTouchStart}
                 onTouchMove={handleRotationSliderTouchMove}
-                className="w-full h-1 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+                className="w-full h-1 bg-gray-300 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#006633] [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#006633] [&::-moz-range-thumb]:border-0"
               />
             </div>
           )}
@@ -739,19 +739,19 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, onCropComplete, onCa
             <div className="flex flex-col items-center">
               <button
                 onClick={toggleRotationControls}
-                className="p-2 hover:bg-[#5D1315] rounded-full transition-colors"
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#7D1A1D">
                   <path d="M496-182 182-496q-23-23-23-54t23-54l174-174q23-23 54-23t54 23l314 314q23 23 23 54t-23 54L604-182q-23 23-54 23t-54-23Zm54-58 170-170-310-310-170 170 310 310ZM480 0q-99 0-186.5-37.5t-153-103Q75-206 37.5-293.5T0-480h80q0 71 24 136t66.5 117Q213-175 272-138.5T401-87L296-192l56-56L588-12q-26 6-53.5 9T480 0Zm400-480q0-71-24-136t-66.5-117Q747-785 688-821.5T559-873l105 105-56 56-236-236q26-6 53.5-9t54.5-3q99 0 186.5 37.5t153 103q65.5 65.5 103 153T960-480h-80Zm-400 0Z"/>
                 </svg>
               </button>
-              <span className="text-xs mt-1">Rotate</span>
+              <span className="text-xs mt-1 text-gray-600">Rotate</span>
             </div>
             
             {/* Apply button */}
             <button
               onClick={handleCrop}
-              className="px-4 py-2 text-white bg-[#5D1315] hover:bg-[#4D1012] rounded-md transition-colors text-sm font-medium"
+              className="px-4 py-2 text-white bg-[#006633] hover:bg-[#005522] rounded-md transition-colors text-sm font-medium"
             >
               Apply
             </button>

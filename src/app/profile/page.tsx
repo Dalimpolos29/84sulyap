@@ -15,6 +15,8 @@ import { IoIosMail } from "react-icons/io";
 import { GiBigDiamondRing } from "react-icons/gi";
 import AddressInput from '@/components/ui/AddressInput'
 import { useProfile, Profile } from '@/hooks/useProfile'
+import Header from '@/components/layout/Header' // Import Header
+import Footer from '@/components/layout/Footer' // Import Footer
 
 // Function to format date strings for display
 const formatDate = (dateString: string | null): string => {
@@ -252,6 +254,8 @@ function ProfileContent() {
       
       // Parse hobbies from the hobbies_interests field
       setSelectedHobbies(parseHobbies(profile.hobbies_interests));
+      // Parse children from the children field (assuming it might be a string or array)
+      setChildrenList(parseChildren(profile.children));
     }
   }, [profile]);
   
@@ -276,86 +280,93 @@ function ProfileContent() {
   // Handle save profile
   const handleSaveProfile = async () => {
     if (!profile) return
-    
+
+    // Store the previous profile state in case we need to revert on error
+    const previousProfile = profile;
+
     try {
       setIsSaving(true)
-      
+
       const formattedHobbies = formatHobbies(selectedHobbies);
-      
+
       const updatedData = {
         profession: editData.profession,
         company: editData.company,
         email: editData.email,
         phone_number: editData.phone_number,
         spouse_name: editData.spouse_name,
-        children: editData.children,
-        hobbies_interests: formattedHobbies,
+        children: childrenList, // Send the array directly
+        hobbies_interests: formattedHobbies, // Send the array directly
         section_1st_year: editData.section_1st_year,
         section_2nd_year: editData.section_2nd_year,
         section_3rd_year: editData.section_3rd_year,
         section_4th_year: editData.section_4th_year,
         address: editData.address
       };
-      
-      console.log('Saving profile data:', updatedData);
-      
-      // First try getting the profile to make sure it exists
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('id, hobbies_interests')
-        .eq('id', profile.id)
-        .single();
-      
-      if (fetchError) {
-        console.error('Error fetching profile before update:', fetchError);
-        throw new Error(fetchError.message || 'Could not verify profile exists');
-      }
-      
-      console.log('Current hobbies in database:', existingProfile?.hobbies_interests, 
-                 'Type:', typeof existingProfile?.hobbies_interests, 
-                 'Is array:', Array.isArray(existingProfile?.hobbies_interests));
-      
-      if (!existingProfile) {
-        throw new Error('Profile not found');
-      }
-      
-      // Then update the profile
-      const { data, error: updateError, status } = await supabase
+
+      console.log('Optimistically updating profile data:', updatedData);
+
+      // --- Optimistic Update --- 
+      // 1. Update local context immediately
+      // Format arrays back to strings *only* for the local context update 
+      // to match the potentially outdated Profile type definition.
+      // The database update will still use the correct array format.
+      const updatedDataForContext = {
+        ...updatedData,
+        hobbies_interests: formattedHobbies.join('; '), // Format hobbies back to string
+        children: childrenList.join(', '),           // Format children back to string
+      };
+      setProfile(currentProfile => 
+        currentProfile ? { ...currentProfile, ...updatedDataForContext } : null
+      );
+      // 2. Exit edit mode immediately for instant UI feedback
+      setIsEditing(false);
+      // -------------------------
+
+      // 3. Update database in the background
+      const { error: updateError, status } = await supabase
         .from('profiles')
         .update(updatedData)
         .eq('id', profile.id)
-        .select();
-      
+        .select(); // Select to confirm update but we don't use the return data here
+
       if (updateError) {
         console.error('Error updating profile (detailed):', JSON.stringify(updateError));
         throw new Error(updateError.message || 'Unknown error updating profile');
       }
-      
+
       if (status >= 400) {
         throw new Error(`Error: Status ${status}`);
       }
+
+      console.log('Profile update successful in database.');
       
-      console.log('Profile updated successfully:', data);
-      
-      // Refresh the profile data
-      await refetchProfile();
-      
-      // Exit edit mode
-      setIsEditing(false);
+      // 4. Remove full refetch on success
+      // await refetchProfile(); 
+
     } catch (error: any) {
-      console.error('Error saving profile - complete error:', error);
-      console.error('Error object stringified:', JSON.stringify(error, null, 2));
+      console.error('Error saving profile - reverting UI:', error);
       
+      // --- Revert Optimistic Update on Error --- 
+      // Restore previous profile state in context
+      setProfile(previousProfile);
+      // Put user back into edit mode if desired, or show error message
+      setIsEditing(true); // Go back to edit mode so user sees the unsaved state
+      // -----------------------------------------
+
       let errorMessage = 'Failed to save profile changes';
       if (error instanceof Error) {
         errorMessage += `: ${error.message}`;
       } else if (error && typeof error === 'object') {
         errorMessage += `: ${JSON.stringify(error)}`;
       }
+      alert(errorMessage); // Inform user
       
-      alert(errorMessage);
+      // Optional: Call refetchProfile() here if absolutely needed to sync after error
+      // await refetchProfile(); 
+
     } finally {
-      setIsSaving(false);
+      setIsSaving(false); // Always stop saving indicator
     }
   }
   
@@ -495,16 +506,29 @@ function ProfileContent() {
 
   const saveSectionChanges = async () => {
     if (!profile) return;
+
+    // Store previous state for potential revert
+    const previousProfile = profile;
     
     try {
-      // Update only the section fields
+      // Prepare section update data
       const updatedData = {
         section_1st_year: editData.section_1st_year,
         section_2nd_year: editData.section_2nd_year,
         section_3rd_year: editData.section_3rd_year,
         section_4th_year: editData.section_4th_year
       };
-      
+
+      // --- Optimistic Update ---
+      // 1. Update local context immediately
+      setProfile(currentProfile => 
+        currentProfile ? { ...currentProfile, ...updatedData } : null
+      );
+      // 2. Exit section editing mode immediately
+      setEditingSections(false);
+      // -------------------------
+
+      // 3. Update database in background
       const { error } = await supabase
         .from('profiles')
         .update(updatedData)
@@ -514,15 +538,27 @@ function ProfileContent() {
         throw error;
       }
       
-      // Refresh profile data
-      await refetchProfile();
+      console.log('Section changes updated successfully in database.');
       
-      // Exit editing mode
-      setEditingSections(false);
+      // 4. Remove full refetch on success
+      // await refetchProfile();
+
     } catch (error: any) {
-      console.error('Error saving section changes:', error);
+      console.error('Error saving section changes - reverting UI:', error);
+      
+      // --- Revert Optimistic Update on Error ---
+      // Restore previous profile state in context
+      setProfile(previousProfile);
+      // Re-enter edit mode if desired
+      // setEditingSections(true); // Optional: uncomment to go back to edit mode
+      // -----------------------------------------
+
       alert('Failed to save section changes. Please try again.');
-    }
+      
+      // Optional: Call refetchProfile() here if needed after error
+      // await refetchProfile();
+    } 
+    // No finally block needed here unless adding a loading state for sections
   };
 
   // Check if any section has been changed from the original
@@ -540,14 +576,6 @@ function ProfileContent() {
   // Add these state declarations near the top with other state declarations
   const [childrenList, setChildrenList] = useState<string[]>([])
   const [currentChild, setCurrentChild] = useState('')
-
-  // Add this effect with other useEffect hooks
-  useEffect(() => {
-    if (profile) {
-      // Parse children string into array
-      setChildrenList(profile.children ? profile.children.split(',').map(child => child.trim()).filter(Boolean) : [])
-    }
-  }, [profile])
 
   // Add this effect with other useEffect hooks
   const [localPrivacySettings, setLocalPrivacySettings] = useState<Profile['privacy_settings']>(null)
@@ -613,15 +641,11 @@ function ProfileContent() {
     const newList = [...childrenList, trimmedName]
     setChildrenList(newList)
     setCurrentChild('')
-    // Update editData to keep it in sync
-    setEditData(prev => ({ ...prev, children: newList.join(', ') }))
   }
 
   const removeChild = (indexToRemove: number) => {
     const newList = childrenList.filter((_, index) => index !== indexToRemove)
     setChildrenList(newList)
-    // Update editData to keep it in sync
-    setEditData(prev => ({ ...prev, children: newList.join(', ') }))
   }
 
   const handleChildKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -630,6 +654,22 @@ function ProfileContent() {
       addChild(currentChild)
     }
   }
+
+  // Parse children from string or array
+  const parseChildren = (childrenValue: string[] | string | null): string[] => {
+    if (!childrenValue) return [];
+    
+    // If it's already an array, just clean it
+    if (Array.isArray(childrenValue)) {
+      return childrenValue.map(c => c.trim()).filter(c => c !== '');
+    }
+    
+    // If it's a string, split by commas (assuming comma-separated)
+    // Adjust the separator if needed (e.g., if it's stored differently)
+    return childrenValue.split(',') 
+      .map(c => c.trim())
+      .filter(c => c !== '');
+  };
 
   if (loading) {
     return (
@@ -672,51 +712,32 @@ function ProfileContent() {
   }
   
   return (
-    <div className="min-h-screen flex flex-col bg-[#1E1E1E] text-white">
-      {/* Header - Keep existing header */}
-      <header className="bg-[#7D1A1D] text-white py-3 shadow-md sticky top-0 z-50">
-        <div className="w-full max-w-[1400px] mx-auto flex justify-between items-center px-4 sm:px-6 md:px-8">
-          <div className="flex-1">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="relative w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border border-[#C9A335] shadow-md">
-                <Image
-                  src="/images/logo.svg"
-                  alt="UPIS 84 Logo"
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover"
-                  priority
-                />
-              </div>
-              <span className="font-serif font-bold text-base md:text-lg line-clamp-1">UPIS Alumni Portal</span>
-            </Link>
-          </div>
-          
-          {/* Back to Dashboard Button */}
-          <button 
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-white bg-[#7D1A1D]/80 hover:bg-[#7D1A1D]/90 py-2 px-4 rounded-md transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span className="hidden sm:inline">Back to Dashboard</span>
-          </button>
-        </div>
-      </header>
-
-      <main className="flex-1 py-8 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto w-full">
+    <div 
+      className="min-h-screen flex flex-col text-[#7D1A1D]"
+      style={{
+        backgroundColor: "#E5DFD0",
+        backgroundImage:
+          "radial-gradient(#7D1A1D 0.5px, transparent 0.5px), radial-gradient(#C9A335 0.5px, #E5DFD0 0.5px)",
+        backgroundSize: "20px 20px",
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      <Header />
+      
+      {/* Main Profile Content Area */}
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Profile</h1>
-            </div>
-            
+        </div>
+        
         {/* Main Content */}
         <div className="grid grid-cols-12 gap-6">
           {/* Profile Card */}
-          <div className="bg-transparent border border-gray-700 rounded-xl p-6 pb-3 sm:pb-6 flex flex-col items-center col-span-12 md:col-span-5 h-fit relative">
-            <h2 className="text-3xl font-bold text-center mb-1">{displayName}</h2>
-            <div className="text-[#C9A335] text-sm font-medium mb-3">Alumni</div>
+          <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 pb-3 sm:pb-6 flex flex-col items-center col-span-12 md:col-span-5 h-fit relative"> {/* Changed background back to white, added shadow */} 
+            <h2 className="text-3xl font-bold text-center mb-1 text-[#7D1A1D]">{displayName}</h2>
+            <div className="text-gray-600 text-sm font-medium mb-3">Alumni</div>
             
             <div className="w-full max-w-[98%] md:max-w-[90%] lg:max-w-[98%] mx-auto mb-3">
               {/* Profile picture or initials */}
@@ -727,26 +748,26 @@ function ProfileContent() {
                   
                   {/* Image with shadow on top */}
                   <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)]">
-                      <Image
+                <Image
                         src={profile.profile_picture_url}
                         alt={`${fullName}'s profile picture`}
                       fill
                       className="object-cover"
-                        priority
-                      />
-                  </div>
-                  
+                  priority
+                />
+          </div>
+          
                   {/* Camera icon positioned to always be at the same position relative to the circle border */}
                       {isOwnProfile && (
                     <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
-                        <button 
+          <button 
                           onClick={handleUploadClick}
-                        className="bg-[#242424] rounded-full p-2 shadow-lg"
+                        className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
                           aria-label="Change profile picture"
-                        >
-                        <Camera size={20} className="text-[#C9A335]" />
-                        </button>
-                    </div>
+          >
+                        <Camera size={20} className="text-[#7D1A1D]" />
+          </button>
+        </div>
                   )}
                 </div>
               ) : (
@@ -755,19 +776,19 @@ function ProfileContent() {
                   <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
                   
                   {/* Initials with shadow on top */}
-                  <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] bg-gray-600 flex items-center justify-center">
-                    <span className="text-7xl font-bold">{initials}</span>
-                      </div>
-                  
+                  <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] bg-gray-200 flex items-center justify-center">
+                    <span className="text-7xl font-bold text-[#7D1A1D]">{initials}</span>
+            </div>
+            
                   {/* Camera icon positioned to always be at the same position relative to the circle border */}
                       {isOwnProfile && (
                     <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
                         <button 
                           onClick={handleUploadClick}
-                        className="bg-[#242424] rounded-full p-2 shadow-lg"
+                        className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
                           aria-label="Add profile picture"
                         >
-                        <Camera size={20} className="text-[#C9A335]" />
+                        <Camera size={20} className="text-[#7D1A1D]" />
                         </button>
                     </div>
                       )}
@@ -838,7 +859,7 @@ function ProfileContent() {
                       {profile.section_1st_year}
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-xs">-</span>
+                    <span className="text-gray-400 text-xs">-</span>
                   )}
                   
                   {profile.section_2nd_year ? (
@@ -846,7 +867,7 @@ function ProfileContent() {
                       {profile.section_2nd_year}
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-xs">-</span>
+                    <span className="text-gray-400 text-xs">-</span>
                   )}
                   
                   {profile.section_3rd_year ? (
@@ -854,7 +875,7 @@ function ProfileContent() {
                       {profile.section_3rd_year}
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-xs">-</span>
+                    <span className="text-gray-400 text-xs">-</span>
                   )}
                   
                   {profile.section_4th_year ? (
@@ -862,7 +883,7 @@ function ProfileContent() {
                       {profile.section_4th_year}
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-xs">-</span>
+                    <span className="text-gray-400 text-xs">-</span>
                   )}
                 </div>
               )}
@@ -872,7 +893,7 @@ function ProfileContent() {
             {isOwnProfile && !editingSections && (
               <button 
                 onClick={startEditingSections}
-                className="absolute bottom-3 right-6 text-gray-400 hover:text-[#C9A335] transition-colors flex items-center text-xs"
+                className="absolute bottom-3 right-6 text-gray-500 hover:text-[#7D1A1D] transition-colors flex items-center text-xs"
                 aria-label="Edit sections"
               >
                 <span className="mr-1">Edit Sections</span>
@@ -885,7 +906,7 @@ function ProfileContent() {
             {isOwnProfile && editingSections && (
               <button 
                 onClick={hasChangedSections() ? saveSectionChanges : cancelEditingSections}
-                className="absolute bottom-3 right-6 text-gray-400 hover:text-[#C9A335] transition-colors flex items-center text-xs"
+                className="absolute bottom-3 right-6 text-gray-500 hover:text-[#7D1A1D] transition-colors flex items-center text-xs"
                 aria-label={hasChangedSections() ? "Apply section changes" : "Cancel editing sections"}
               >
                 {hasChangedSections() ? (
@@ -894,9 +915,9 @@ function ProfileContent() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                  </>
-                ) : (
-                  <>
+                    </>
+                  ) : (
+                    <>
                     <span className="mr-1">Cancel</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -905,14 +926,14 @@ function ProfileContent() {
                 )}
               </button>
             )}
-              </div>
+                      </div>
               
           {/* Bio & Details Card */}
-          <div className="bg-transparent border border-gray-700 rounded-xl p-6 col-span-12 md:col-span-7 relative">
-            <h2 className="text-xl font-bold mb-6 flex items-center justify-between">
+          <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 col-span-12 md:col-span-7 relative"> {/* Changed background back to white, added shadow */} 
+            <h2 className="text-xl font-bold mb-6 flex items-center justify-between text-[#7D1A1D]">
               {isOwnProfile ? "Personal Information" : "User Information"}
-              {isOwnProfile && (
-                <button 
+                      {isOwnProfile && (
+                        <button 
                   onClick={() => setIsEditing(!isEditing)}
                   className="text-[#C9A335] hover:text-[#E5BD4F] transition-colors"
                   aria-label={isEditing ? "Cancel editing" : "Edit information"}
@@ -921,14 +942,14 @@ function ProfileContent() {
                   {isEditing ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
+                          </svg>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
                   )}
-                </button>
-              )}
+                        </button>
+                      )}
             </h2>
             
             {isEditing ? (
@@ -940,66 +961,66 @@ function ProfileContent() {
                       <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
-                        <FaIdCard className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{nameWithMiddleInitial}</p>
+                        <FaIdCard className="h-5 w-5 text-gray-600 mr-3" />
+                        <p className="font-medium break-words text-gray-800">{nameWithMiddleInitial}</p> {/* Added text-gray-800 */}
                       </div>
                     </div>
                     
                     <div>
                       <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
                       <div className="flex items-center">
-                        <FaBirthdayCake className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{formatDate(profile.birthday)}</p>
+                        <FaBirthdayCake className="h-5 w-5 text-gray-600 mr-3" />
+                        <p className="font-medium break-words text-gray-800">{formatDate(profile.birthday)}</p> {/* Added text-gray-800 */}
                       </div>
                     </div>
                     
                     {/* Row 2: Profession | Company */}
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p> {/* Changed label color */} 
                       <div className="flex items-center">
-                        <FaBriefcase className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <FaBriefcase className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
                           <input
                             type="text"
                             name="profession"
                             value={editData.profession || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                             placeholder="Your profession"
                           />
                         ) : (
-                          <p className="font-medium break-words">{profile.profession || 'Not provided'}</p>
-                        )}
-                      </div>
-                    </div>
-
+                          <p className="font-medium break-words text-gray-500">{profile.profession || 'Not provided'}</p>
+                  )}
+                </div>
+              </div>
+              
                       <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Company</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Company</p> {/* Changed label color */} 
                       <div className="flex items-center">
-                        <FaBuilding className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <FaBuilding className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
                           <input
                             type="text"
                             name="company"
                             value={editData.company || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                             placeholder="Your company"
                           />
                         ) : (
-                          <p className="font-medium break-words">{profile.company || 'Not provided'}</p>
+                          <p className="font-medium break-words text-gray-500">{profile.company || 'Not provided'}</p>
                         )}
                       </div>
                     </div>
                   
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-700"></div>
+                      <div className="border-t border-gray-200"></div> {/* Changed from border-gray-700 */}
                    </div>
                   
                     {/* Row 3: Phone | Email */}
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Phone
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1017,7 +1038,7 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-center">
-                        <FaPhone className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <FaPhone className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
                           <input
                             type="tel"
@@ -1030,11 +1051,11 @@ function ProfileContent() {
                                 e.preventDefault();
                               }
                             }}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                             placeholder="Your phone number"
                           />
                         ) : (
-                          <p className="font-medium break-words">
+                          <p className="font-medium break-words text-gray-500">
                             {(!isOwnProfile && !localPrivacySettings?.phone) 
                               ? "Private" 
                               : (profile?.phone_number || 'Not provided')}
@@ -1044,7 +1065,7 @@ function ProfileContent() {
                     </div>
                     
                       <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Email
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1062,7 +1083,7 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-start">
-                        <IoIosMail className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-0.5" />
+                        <IoIosMail className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           {isEditing ? (
                             <input
@@ -1070,11 +1091,11 @@ function ProfileContent() {
                               name="email"
                               value={editData.email || ''}
                               onChange={handleInputChange}
-                              className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                              className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                               placeholder="Your email address"
                             />
                           ) : (
-                            <p className="font-medium break-all text-sm sm:text-base">
+                            <p className="font-medium break-all text-sm sm:text-base text-gray-500">
                               {(!isOwnProfile && !localPrivacySettings?.email) 
                                 ? "Private" 
                                 : (profile?.email || 'Not provided')}
@@ -1086,7 +1107,7 @@ function ProfileContent() {
                     
                     {/* Row 4: Address */}
                     <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Address
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1104,17 +1125,18 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-start">
-                        <FaLocationDot className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
+                        <FaLocationDot className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
                         <div className="flex-1">
                           {isEditing ? (
                             <AddressInput
                               value={editData.address}
                               onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
                               isEditing={isEditing}
-                              className="w-full"
+                              className="w-full" // AddressInput handles its own styles based on isEditing
+                              // Pass light theme specific styles if needed via props, e.g., inputClassName="bg-gray-50 ..."
                             />
                           ) : (
-                            <div className="font-medium break-words">
+                            <div className="font-medium break-words text-gray-500">
                               {(!isOwnProfile && !localPrivacySettings?.address) 
                                 ? "Private" 
                                 : (profile?.address || 'Not provided')}
@@ -1131,7 +1153,7 @@ function ProfileContent() {
                     
                     {/* Row 5: Spouse | Children */}
                       <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Spouse
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1149,28 +1171,28 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-center">
-                        <GiBigDiamondRing className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <GiBigDiamondRing className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
                           <input
                             type="text"
                             name="spouse_name"
                             value={editData.spouse_name || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                             placeholder="Spouse's name"
                           />
                         ) : (
-                          <p className="font-medium break-words">
+                          <p className="font-medium break-words text-gray-500">
                             {(!isOwnProfile && !localPrivacySettings?.spouse) 
                               ? "Private" 
                               : (profile?.spouse_name || 'Not provided')}
                           </p>
                         )}
-                      </div>
+                    </div>
                     </div>
 
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Children
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1188,19 +1210,19 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-start">
-                        <FaChildren className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
+                        <FaChildren className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
                         {isEditing ? (
                           <div className="flex-1">
                             <div className="flex flex-wrap gap-1 items-center">
                               {childrenList.map((child, index) => (
                                 <span 
                                   key={index}
-                                  className="bg-[#333333] text-white text-xs px-2 py-0.5 rounded border border-gray-600 flex items-center"
+                                  className="bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-400 flex items-center" // Light theme badge
                                 >
                                   {child}
                                   <button 
                                     onClick={() => removeChild(index)}
-                                    className="ml-1 text-white/80 hover:text-white"
+                                    className="ml-1 text-gray-600 hover:text-gray-800" // Light theme remove button
                                     type="button"
                                   >
                                     ×
@@ -1212,16 +1234,19 @@ function ProfileContent() {
                                 value={currentChild}
                                 onChange={(e) => setCurrentChild(e.target.value)}
                                 onKeyDown={handleChildKeyDown}
-                                className="bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium w-full"
+                                className="bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium w-full placeholder-gray-400" // Removed px-2 py-1
                                 placeholder="Add child's name and press Enter"
                               />
                 </div>
               </div>
                         ) : (
-                          <p className="font-medium break-words">
+                          <p className="font-medium break-words"> {/* Removed text-gray-500 */}
                             {(!isOwnProfile && !localPrivacySettings?.children) 
-                              ? "Private" 
-                              : (profile?.children || 'Not provided')}
+                              ? <span className="text-gray-500">Private</span> // Added span for color
+                              : (profile?.children && Array.isArray(profile.children) && profile.children.length > 0)
+                                ? <span className="text-gray-800">{profile.children.join(', ')}</span> // Display joined array if exists
+                                : <span className="text-gray-500">Not provided</span> // Otherwise show Not provided
+                            }
                           </p>
                         )}
             </div>
@@ -1234,7 +1259,7 @@ function ProfileContent() {
                     
                     {/* Row 6: Hobbies & Interests (spanning both columns) */}
                     <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p> {/* Changed label color */} 
                       <div>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {selectedHobbies.map((hobby) => {
@@ -1257,7 +1282,7 @@ function ProfileContent() {
                               </span>
                             );
                           })}
-          </div>
+                      </div>
           
                         {isEditing && (
                           <div className="relative">
@@ -1266,7 +1291,7 @@ function ProfileContent() {
                               value={currentHobby}
                               onChange={handleHobbyInputChange}
                               onKeyDown={handleHobbyKeyDown}
-                              className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                              className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                               placeholder="Add a hobby and press Enter"
                             />
                             {showSuggestions && filteredSuggestions.length > 0 && (
@@ -1284,7 +1309,7 @@ function ProfileContent() {
                                     {hobby}
                                   </button>
                                 ))}
-              </div>
+                    </div>
                   )}
                 </div>
                         )}
@@ -1300,46 +1325,46 @@ function ProfileContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
                     {/* Row 1: Full Name | Birthday */}
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
-                        <FaIdCard className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{nameWithMiddleInitial}</p>
-              </div>
+                        <FaIdCard className="h-5 w-5 text-gray-600 mr-3" />
+                        <p className="font-medium break-words text-gray-800">{nameWithMiddleInitial}</p>
             </div>
-            
+          </div>
+          
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
                       <div className="flex items-center">
-                        <FaBirthdayCake className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{formatDate(profile.birthday)}</p>
+                        <FaBirthdayCake className="h-5 w-5 text-gray-600 mr-3" />
+                        <p className="font-medium break-words text-gray-800">{formatDate(profile.birthday)}</p>
               </div>
               </div>
                     
                     {/* Row 2: Profession | Company */}
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p> {/* Changed label color */} 
                       <div className="flex items-center">
-                        <FaBriefcase className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{profile.profession || 'Not provided'}</p>
+                        <FaBriefcase className="h-5 w-5 text-gray-600 mr-3" />
+                        <p className="font-medium break-words">{profile.profession ? <span className="text-gray-800">{profile.profession}</span> : <span className="text-gray-500">Not provided</span>}</p>
+              </div>
             </div>
-          </div>
-          
+            
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Company</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Company</p> {/* Changed label color */} 
                       <div className="flex items-center">
-                        <FaBuilding className="h-5 w-5 text-[#C9A335] mr-3" />
-                        <p className="font-medium break-words">{profile.company || 'Not provided'}</p>
-            </div>
-            </div>
+                        <FaBuilding className="h-5 w-5 text-gray-600 mr-3" />
+                        <p className="font-medium break-words">{profile.company ? <span className="text-gray-800">{profile.company}</span> : <span className="text-gray-500">Not provided</span>}</p>
+              </div>
+              </div>
                   
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-700"></div>
+                      <div className="border-t border-gray-200"></div>
           </div>
           
                     {/* Row 3: Phone | Email */}
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Phone
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1357,7 +1382,7 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-center">
-                        <FaPhone className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <FaPhone className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
                           <input
                             type="tel"
@@ -1370,39 +1395,41 @@ function ProfileContent() {
                                 e.preventDefault();
                               }
                             }}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                             placeholder="Your phone number"
                           />
                         ) : (
-                          <p className="font-medium break-words">
+                          <p className="font-medium break-words text-gray-500">
                             {(!isOwnProfile && !localPrivacySettings?.phone) 
                               ? "Private" 
-                              : (profile?.phone_number || 'Not provided')}
+                              : profile?.phone_number 
+                                ? <span className="text-gray-800">{profile.phone_number}</span>
+                                : <span className="text-gray-500">Not provided</span>}
                           </p>
                         )}
             </div>
           </div>
-
+          
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Email
                         {!isEditing && isOwnProfile && (
-                          <button
+            <button
                             onClick={() => updatePrivacySetting('email')}
                             className="flex items-center gap-1 text-[10px]"
                             title={localPrivacySettings?.email ? "Click to make private" : "Click to make public"}
                           >
                             <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.email ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                               <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.email ? 'translate-x-3' : ''}`} />
-                      </div>
+            </div>
                             <span className={localPrivacySettings?.email ? 'text-[#C9A335]' : 'text-green-600'}>
                               {localPrivacySettings?.email ? "Public" : "Private"}
                             </span>
-                          </button>
+            </button>
                         )}
                       </p>
                       <div className="flex items-start">
-                        <IoIosMail className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-0.5" />
+                        <IoIosMail className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           {isEditing ? (
                             <input
@@ -1410,23 +1437,25 @@ function ProfileContent() {
                               name="email"
                               value={editData.email || ''}
                               onChange={handleInputChange}
-                              className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                              className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                               placeholder="Your email address"
                             />
                           ) : (
-                            <p className="font-medium break-all text-sm sm:text-base">
+                            <p className="font-medium break-all text-sm sm:text-base text-gray-500">
                               {(!isOwnProfile && !localPrivacySettings?.email) 
                                 ? "Private" 
-                                : (profile?.email || 'Not provided')}
+                                : profile?.email 
+                                  ? <span className="text-gray-800">{profile.email}</span>
+                                  : <span className="text-gray-500">Not provided</span>}
                             </p>
                           )}
-                    </div>
-                      </div>
-                    </div>
-                    
+          </div>
+            </div>
+          </div>
+          
                     {/* Row 4: Address */}
                     <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Address
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1436,7 +1465,7 @@ function ProfileContent() {
                           >
                             <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.address ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                               <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.address ? 'translate-x-3' : ''}`} />
-                            </div>
+            </div>
                             <span className={localPrivacySettings?.address ? 'text-[#C9A335]' : 'text-green-600'}>
                               {localPrivacySettings?.address ? "Public" : "Private"}
                             </span>
@@ -1444,29 +1473,30 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-start">
-                        <FaLocationDot className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
+                        <FaLocationDot className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
                         <div className="flex-1">
+                          {/* AddressInput handles its own view/edit state styling */} 
                           <AddressInput
                             value={profile.address}
                             onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
                             isEditing={isEditing}
-                            className="w-full"
+                            className="w-full" // Removed viewClassName, className applies base styles
                           />
-                        </div>
-                      </div>
-                    </div>
-                    
+            </div>
+            </div>
+          </div>
+
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-700"></div>
+                      <div className="border-t border-gray-200"></div>
                     </div>
                     
                     {/* Row 5: Spouse | Children */}
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Spouse
                         {!isEditing && isOwnProfile && (
-                          <button
+            <button
                             onClick={() => updatePrivacySetting('spouse')}
                             className="flex items-center gap-1 text-[10px]"
                             title={localPrivacySettings?.spouse ? "Click to make private" : "Click to make public"}
@@ -1477,32 +1507,34 @@ function ProfileContent() {
                             <span className={localPrivacySettings?.spouse ? 'text-[#C9A335]' : 'text-green-600'}>
                               {localPrivacySettings?.spouse ? "Public" : "Private"}
                             </span>
-                          </button>
+            </button>
                         )}
                       </p>
                       <div className="flex items-center">
-                        <GiBigDiamondRing className="h-5 w-5 text-[#C9A335] mr-3" />
+                        <GiBigDiamondRing className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
-                          <input
+      <input 
                             type="text"
                             name="spouse_name"
                             value={editData.spouse_name || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-[#333333] border-0 px-0 py-0 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] rounded font-medium"
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
                             placeholder="Spouse's name"
                           />
                         ) : (
-                          <p className="font-medium break-words">
+                          <p className="font-medium break-words text-gray-500">
                             {(!isOwnProfile && !localPrivacySettings?.spouse) 
                               ? "Private" 
-                              : (profile?.spouse_name || 'Not provided')}
+                              : profile?.spouse_name 
+                                ? <span className="text-gray-800">{profile.spouse_name}</span>
+                                : <span className="text-gray-500">Not provided</span>}
                           </p>
                         )}
-                      </div>
-                    </div>
+          </div>
+        </div>
 
                     <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
                         Children
                         {!isEditing && isOwnProfile && (
                           <button
@@ -1512,7 +1544,7 @@ function ProfileContent() {
                           >
                             <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.children ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                               <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.children ? 'translate-x-3' : ''}`} />
-                            </div>
+            </div>
                             <span className={localPrivacySettings?.children ? 'text-[#C9A335]' : 'text-green-600'}>
                               {localPrivacySettings?.children ? "Public" : "Private"}
                             </span>
@@ -1520,23 +1552,25 @@ function ProfileContent() {
                         )}
                       </p>
                       <div className="flex items-start">
-                        <FaChildren className="h-5 w-5 text-[#C9A335] mr-3 flex-shrink-0 mt-1" />
+                        <FaChildren className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
                         <p className="font-medium break-words">
                           {(!isOwnProfile && !localPrivacySettings?.children) 
-                            ? "Private" 
-                            : (profile?.children || 'Not provided')}
+                            ? <span className="text-gray-500">Private</span> 
+                            : (profile?.children && Array.isArray(profile.children) && profile.children.length > 0)
+                              ? <span className="text-gray-800">{profile.children.join(', ')}</span> // Correctly join the array with comma and space
+                              : <span className="text-gray-500">Not provided</span>}
                         </p>
-                      </div>
-                    </div>
+            </div>
+          </div>
 
                     {/* Separator */}
                     <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-700"></div>
-                    </div>
+                      <div className="border-t border-gray-200"></div>
+        </div>
                     
                     {/* Row 6: Hobbies & Interests (spanning both columns) */}
                     <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p> {/* Changed label color */} 
                       <div>
                         <div className="flex flex-wrap gap-1">
                           {selectedHobbies.length > 0 ? (
@@ -1552,7 +1586,7 @@ function ProfileContent() {
                               );
                             })
                           ) : (
-                            <p className="font-medium">Not provided</p>
+                            <p className="font-medium text-gray-500">Not provided</p>
                           )}
                         </div>
                       </div>
@@ -1585,7 +1619,7 @@ function ProfileContent() {
           </div>
           
           {/* Featured Photos Section */}
-          <div className="mt-6 bg-transparent border border-gray-700 rounded-xl overflow-hidden col-span-12">
+          <div className="mt-6 bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden col-span-12"> {/* Changed background back to white, added shadow */} 
             <FeaturedPhotos 
               userId={profile.id} 
               userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
@@ -1595,26 +1629,6 @@ function ProfileContent() {
           </div>
         </div>
       </main>
-      
-      {/* Footer */}
-      <footer className="border-t border-gray-800 mt-auto">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-sm text-gray-400">© 2025 UPIS Batch '84 Alumni Portal</p>
-              <p className="text-sm text-gray-400">All Rights Reserved</p>
-            </div>
-            <div className="flex space-x-6">
-              <Link href="/privacy-policy" className="text-sm text-gray-300 hover:underline">
-                Privacy Policy
-              </Link>
-              <Link href="/terms-of-use" className="text-sm text-gray-300 hover:underline">
-                Terms of Use
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
 
       {/* Image Cropper Modal */}
       {selectedImage && (
@@ -1625,25 +1639,16 @@ function ProfileContent() {
         />
       )}
       
-      {/* Hidden file input */}
+      {/* Hidden file input for profile picture uploads */}
       <input 
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileChange} 
         accept="image/*" 
-        className="hidden"
-        aria-hidden="true"
+        style={{ display: 'none' }}
       />
-      
-      {/* Loading Overlay */}
-      {uploadingPhoto && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-[#242424] p-6 rounded-lg shadow-lg">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#C9A335] mx-auto mb-4"></div>
-            <p className="text-gray-300">Uploading photo...</p>
-          </div>
-        </div>
-      )}
+
+      <Footer />
     </div>
   )
 }
