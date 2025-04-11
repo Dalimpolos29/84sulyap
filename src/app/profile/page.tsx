@@ -124,7 +124,12 @@ const getHobbyCategory = (hobby: string): string => {
 
 // Add viewProfileId to the component props
 interface ProfilePageProps {
-  viewProfileId?: string;
+  params?: {
+    id?: string;
+  };
+  searchParams?: {
+    [key: string]: string | string[] | undefined;
+  };
 }
 
 // Update the ProfileContent component to accept viewProfileId
@@ -1485,17 +1490,17 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   )
 }
 
-// Update the main ProfilePage component
-export default function ProfilePage({ viewProfileId }: ProfilePageProps) {
+// Update the default export
+export default function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const [session, setSession] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
   
   useEffect(() => {
     const getUser = async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        setSession(session)
-        setIsLoading(false)
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
+      setIsLoading(false)
     }
     getUser()
   }, [])
@@ -1514,9 +1519,9 @@ export default function ProfilePage({ viewProfileId }: ProfilePageProps) {
   
   return (
     <ProfileProvider user={session.user}>
-      <ProfileContent viewProfileId={viewProfileId} />
+      <ProfileContent viewProfileId={params?.id} />
     </ProfileProvider>
-  )
+  );
 }
 
 {/* Add text-shadow utility class */}
