@@ -611,7 +611,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
         {existingPhotos.length > 0 ? (
           <>
             <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-              {existingPhotos.map((photo, index) => (
+            {existingPhotos.map((photo, index) => (
                 <div key={index} className="flex flex-col group">
                   <div 
                     className="relative w-full rounded-lg overflow-hidden bg-gray-50 border border-gray-200 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer" 
@@ -621,15 +621,15 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
                       setIsLightboxOpen(true);
                     }}
                   >
-                    <Image
-                      src={photo.url as string}
-                      alt={photo.caption || `Featured photo ${index + 1}`}
-                      fill
-                      className="object-cover"
+                  <Image
+                    src={photo.url as string}
+                    alt={photo.caption || `Featured photo ${index + 1}`}
+                    fill
+                    className="object-cover"
                       sizes="(max-width: 768px) 33vw, 33vw"
-                    />
-                  </div>
-                  {photo.caption && (
+                  />
+                </div>
+                {photo.caption && (
                     <div className="mt-1 sm:mt-2 text-center relative group">
                       <p className="text-gray-600 text-xs sm:text-sm truncate group-hover:invisible">{photo.caption}</p>
                       <div className="absolute inset-x-0 top-0 hidden group-hover:block z-20">
@@ -637,12 +637,12 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
                           {photo.caption}
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Fill in placeholder cards if less than 3 photos */}
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {/* Fill in placeholder cards if less than 3 photos */}
               {Array.from({ length: 3 - existingPhotos.length }).map((_, i) => {
                 // Calculate the actual position this placeholder represents
                 const placeholderIndex = existingPhotos.length + i;
@@ -678,12 +678,12 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                      </div>
+              </div>
                     </div>
                   </div>
                 );
               })}
-            </div>
+          </div>
 
             {/* Lightbox */}
             <Lightbox
