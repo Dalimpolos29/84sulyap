@@ -41,8 +41,8 @@ export default function Header() {
   }
 
   return (
-    <>
-      <header className="bg-[#7D1A1D] text-white py-3 shadow-md sticky top-0 z-50">
+    <div className="sticky top-0 z-50">
+      <header className="bg-[#7D1A1D] text-white py-3 shadow-md">
         <div className="w-full max-w-[1400px] mx-auto flex justify-between items-center px-4 sm:px-6 md:px-8">
           
           {/* Unauthenticated Header Layout (e.g., Login Page) */}
@@ -161,6 +161,6 @@ export default function Header() {
         </div>
       </header>
       <Navigation />
-    </>
+    </div>
   )
 } 

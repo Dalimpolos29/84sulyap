@@ -15,12 +15,13 @@ import { IoIosMail } from "react-icons/io";
 import { GiBigDiamondRing } from "react-icons/gi";
 import AddressInput from '@/components/ui/AddressInput'
 import { useProfile, Profile } from '@/hooks/useProfile'
-import Header from '@/components/layout/Header' // Import Header
-import Footer from '@/components/layout/Footer' // Import Footer
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 import Lightbox from "yet-another-react-lightbox"
+import LoginPage from '@/app/(auth)/login/page'
 
 // Function to format date strings for display
-const formatDate = (dateString: string | null): string => {
+const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return 'Not provided'
   try {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -121,10 +122,17 @@ const getHobbyCategory = (hobby: string): string => {
   return 'other'; // Default category
 };
 
-// Profile content component
-function ProfileContent() {
+// Add viewProfileId to the component props
+interface ProfilePageProps {
+  viewProfileId?: string;
+}
+
+// Update the ProfileContent component to accept viewProfileId
+function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   const router = useRouter()
-  const { profile, loading, error, fullName, displayName, nameWithMiddleInitial, initials, refetchProfile, setProfile } = useProfileContext()
+  const { profile: contextProfile, loading: contextLoading, error: contextError, fullName, displayName, nameWithMiddleInitial, initials, refetchProfile, setProfile } = useProfileContext()
+  const [viewedProfile, setViewedProfile] = useState<Profile | null>(null)
+  const [isViewMode, setIsViewMode] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -235,42 +243,71 @@ function ProfileContent() {
     };
   }, []);
   
-  // Update editData when profile changes
+  // Effect to fetch profile data based on viewProfileId
   useEffect(() => {
-    if (profile) {
-      setEditData({
-        profession: profile.profession || '',
-        company: profile.company || '',
-        email: profile.email || '',
-        phone_number: profile.phone_number || '',
-        spouse_name: profile.spouse_name || '',
-        children: profile.children || '',
-        hobbies_interests: profile.hobbies_interests || '',
-        section_1st_year: profile.section_1st_year || '',
-        section_2nd_year: profile.section_2nd_year || '',
-        section_3rd_year: profile.section_3rd_year || '',
-        section_4th_year: profile.section_4th_year || '',
-        address: profile.address || ''
-      });
-      
-      // Parse hobbies from the hobbies_interests field
-      setSelectedHobbies(parseHobbies(profile.hobbies_interests));
-      // Parse children from the children field (assuming it might be a string or array)
-      setChildrenList(parseChildren(profile.children));
-    }
-  }, [profile]);
-  
-  // Check if this is the user's own profile
-  useEffect(() => {
-    const checkProfileOwnership = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session && profile && session.user.id === profile.id) {
-        setIsOwnProfile(true)
+    async function fetchViewedProfile() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!viewProfileId) {
+          // No viewProfileId means we're on our own profile page
+          setIsViewMode(false)
+          setIsOwnProfile(true)
+          return
+        }
+
+        // Check if viewing own profile through viewProfileId
+        const isOwn = session?.user?.id === viewProfileId
+        setIsOwnProfile(isOwn)
+        setIsViewMode(!isOwn)
+
+        // Always fetch profile data when there's a viewProfileId
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', viewProfileId)
+          .single()
+
+        if (error) throw error
+        setViewedProfile(data as Profile)
+        
+        // Initialize children list if viewing own profile
+        if (isOwn && data) {
+          setChildrenList(parseChildren(data.children))
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
       }
     }
-    
-    checkProfileOwnership()
-  }, [profile, supabase.auth])
+
+    fetchViewedProfile()
+  }, [viewProfileId])
+
+  // Use either viewed profile or context profile
+  const activeProfile = viewedProfile || contextProfile
+  
+  // Modify existing useEffect for edit data
+  useEffect(() => {
+    if (activeProfile && !isViewMode) {
+      setEditData({
+        profession: activeProfile.profession || '',
+        company: activeProfile.company || '',
+        email: activeProfile.email || '',
+        phone_number: activeProfile.phone_number || '',
+        spouse_name: activeProfile.spouse_name || '',
+        children: activeProfile.children || '',
+        hobbies_interests: activeProfile.hobbies_interests || '',
+        section_1st_year: activeProfile.section_1st_year || '',
+        section_2nd_year: activeProfile.section_2nd_year || '',
+        section_3rd_year: activeProfile.section_3rd_year || '',
+        section_4th_year: activeProfile.section_4th_year || '',
+        address: activeProfile.address || ''
+      })
+      
+      // Set selected hobbies
+      setSelectedHobbies(parseHobbies(activeProfile.hobbies_interests))
+    }
+  }, [activeProfile, isViewMode])
   
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -280,10 +317,10 @@ function ProfileContent() {
   
   // Handle save profile
   const handleSaveProfile = async () => {
-    if (!profile) return
+    if (!activeProfile) return
 
     // Store the previous profile state in case we need to revert on error
-    const previousProfile = profile;
+    const previousProfile = activeProfile;
 
     try {
       setIsSaving(true)
@@ -326,7 +363,7 @@ function ProfileContent() {
       const { error: updateError, status } = await supabase
         .from('profiles')
         .update(updatedData)
-        .eq('id', profile.id)
+        .eq('id', activeProfile.id)
         .select(); // Select to confirm update but we don't use the return data here
 
       if (updateError) {
@@ -371,20 +408,20 @@ function ProfileContent() {
   
   // Cancel editing
   const handleCancelEdit = () => {
-    if (profile) {
+    if (activeProfile) {
       setEditData({
-        profession: profile.profession || '',
-        company: profile.company || '',
-        email: profile.email || '',
-        phone_number: profile.phone_number || '',
-        spouse_name: profile.spouse_name || '',
-        children: profile.children || '',
-        hobbies_interests: profile.hobbies_interests || '',
-        section_1st_year: profile.section_1st_year || '',
-        section_2nd_year: profile.section_2nd_year || '',
-        section_3rd_year: profile.section_3rd_year || '',
-        section_4th_year: profile.section_4th_year || '',
-        address: profile.address || ''
+        profession: activeProfile.profession || '',
+        company: activeProfile.company || '',
+        email: activeProfile.email || '',
+        phone_number: activeProfile.phone_number || '',
+        spouse_name: activeProfile.spouse_name || '',
+        children: activeProfile.children || '',
+        hobbies_interests: activeProfile.hobbies_interests || '',
+        section_1st_year: activeProfile.section_1st_year || '',
+        section_2nd_year: activeProfile.section_2nd_year || '',
+        section_3rd_year: activeProfile.section_3rd_year || '',
+        section_4th_year: activeProfile.section_4th_year || '',
+        address: activeProfile.address || ''
       })
     }
     setIsEditing(false)
@@ -393,7 +430,7 @@ function ProfileContent() {
   // Handle file selection
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !profile) return
+    if (!file || !activeProfile) return
     
     // Create a preview for the cropper
     const reader = new FileReader()
@@ -407,13 +444,13 @@ function ProfileContent() {
   
   // Handle cropped image upload
   const handleCroppedImageUpload = async (croppedBlob: Blob) => {
-    if (!profile) return
+    if (!activeProfile) return
     
     try {
       setUploadingPhoto(true)
       
       // Create user folder name - use fullName or fallback to user ID if no name available
-      const userFolderName = fullName.replace(/\s+/g, '_') || profile.id
+      const userFolderName = fullName.replace(/\s+/g, '_') || activeProfile.id
       
       // Create a unique file name
       const fileName = `${Date.now()}.jpeg`
@@ -450,7 +487,7 @@ function ProfileContent() {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_picture_url: publicUrl })
-        .eq('id', profile.id)
+        .eq('id', activeProfile.id)
       
       if (updateError) {
         console.error("Profile update error:", updateError)
@@ -491,23 +528,23 @@ function ProfileContent() {
 
   const cancelEditingSections = () => {
     // Reset section values to original
-    if (profile) {
+    if (activeProfile) {
       setEditData(prev => ({
         ...prev,
-        section_1st_year: profile.section_1st_year || '',
-        section_2nd_year: profile.section_2nd_year || '',
-        section_3rd_year: profile.section_3rd_year || '',
-        section_4th_year: profile.section_4th_year || ''
+        section_1st_year: activeProfile.section_1st_year || '',
+        section_2nd_year: activeProfile.section_2nd_year || '',
+        section_3rd_year: activeProfile.section_3rd_year || '',
+        section_4th_year: activeProfile.section_4th_year || ''
       }));
     }
     setEditingSections(false);
   };
 
   const saveSectionChanges = async () => {
-    if (!profile) return;
+    if (!activeProfile) return;
 
     // Store previous state for potential revert
-    const previousProfile = profile;
+    const previousProfile = activeProfile;
     
     try {
       // Prepare section update data
@@ -531,9 +568,9 @@ function ProfileContent() {
       const { error } = await supabase
         .from('profiles')
         .update(updatedData)
-        .eq('id', profile.id);
-        
-      if (error) {
+        .eq('id', activeProfile.id);
+  
+  if (error) {
         throw error;
       }
       
@@ -562,13 +599,13 @@ function ProfileContent() {
 
   // Check if any section has been changed from the original
   const hasChangedSections = () => {
-    if (!profile) return false;
+    if (!activeProfile) return false;
     
     return (
-      editData.section_1st_year !== (profile.section_1st_year || '') ||
-      editData.section_2nd_year !== (profile.section_2nd_year || '') ||
-      editData.section_3rd_year !== (profile.section_3rd_year || '') ||
-      editData.section_4th_year !== (profile.section_4th_year || '')
+      editData.section_1st_year !== (activeProfile.section_1st_year || '') ||
+      editData.section_2nd_year !== (activeProfile.section_2nd_year || '') ||
+      editData.section_3rd_year !== (activeProfile.section_3rd_year || '') ||
+      editData.section_4th_year !== (activeProfile.section_4th_year || '')
     );
   };
 
@@ -581,13 +618,13 @@ function ProfileContent() {
   
   // Initialize local privacy settings from profile
   useEffect(() => {
-    if (profile?.privacy_settings) {
-      setLocalPrivacySettings(profile.privacy_settings)
+    if (activeProfile?.privacy_settings) {
+      setLocalPrivacySettings(activeProfile.privacy_settings)
     }
-  }, [profile?.privacy_settings])
+  }, [activeProfile?.privacy_settings])
 
   const updatePrivacySetting = async (field: 'phone' | 'email' | 'address' | 'spouse' | 'children') => {
-    if (!profile || !localPrivacySettings) return;
+    if (!activeProfile || !localPrivacySettings) return;
     
     // Update local state immediately
     const newSettings = {
@@ -611,7 +648,7 @@ function ProfileContent() {
       const { error } = await supabase
         .from('profiles')
         .update({ privacy_settings: newSettings })
-        .eq('id', profile.id);
+        .eq('id', activeProfile.id);
       
       if (error) throw error;
       
@@ -620,11 +657,11 @@ function ProfileContent() {
       console.error('Error updating privacy settings:', error);
       
       // Revert local states on error
-      setLocalPrivacySettings(profile.privacy_settings);
+      setLocalPrivacySettings(activeProfile.privacy_settings);
       setProfile(currentProfile => 
         currentProfile ? {
           ...currentProfile,
-          privacy_settings: profile.privacy_settings
+          privacy_settings: activeProfile.privacy_settings
         } : null
       );
       
@@ -673,13 +710,13 @@ function ProfileContent() {
   const [isProfileLightboxOpen, setIsProfileLightboxOpen] = useState(false)
   
   // Prepare profile picture slide for lightbox
-  const profileSlide = useMemo(() => profile?.profile_picture_url ? [{
-    src: profile.profile_picture_url,
+  const profileSlide = useMemo(() => activeProfile?.profile_picture_url ? [{
+    src: activeProfile.profile_picture_url,
     alt: `${fullName}'s profile picture`,
     title: fullName
-  }] : [], [profile?.profile_picture_url, fullName])
+  }] : [], [activeProfile?.profile_picture_url, fullName])
 
-  if (loading) {
+  if (contextLoading || (viewProfileId && !viewedProfile)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A335]"></div>
@@ -687,29 +724,13 @@ function ProfileContent() {
     )
   }
   
-  if (error) {
+  if (contextError || (viewProfileId && !viewedProfile)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="bg-gray-800 border border-red-500 text-red-400 px-4 py-3 rounded-md">
-          <p>Error loading profile: {error}</p>
+          <p>Error loading profile: {contextError || 'Profile not found'}</p>
           <button 
             className="mt-2 text-sm text-red-400 hover:underline"
-            onClick={() => router.push('/')}
-          >
-            Return to Dashboard
-          </button>
-        </div>
-      </div>
-    )
-  }
-  
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="bg-gray-800 border border-yellow-500 text-yellow-400 px-4 py-3 rounded-md">
-          <p>Profile not found. Please complete your profile setup.</p>
-          <button 
-            className="mt-2 text-sm text-yellow-400 hover:underline"
             onClick={() => router.push('/')}
           >
             Return to Dashboard
@@ -745,11 +766,13 @@ function ProfileContent() {
           <div className="contents md:contents-none md:block md:col-span-5">
             {/* Profile Picture Section */}
             <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 pb-3 sm:pb-6 flex flex-col items-center order-1 relative">
-              <h2 className="text-3xl font-bold text-center mb-1 text-[#7D1A1D]">{displayName}</h2>
+              <h2 className="text-3xl font-bold text-center mb-1 text-[#7D1A1D]">
+                {isViewMode ? viewedProfile?.first_name + ' ' + viewedProfile?.last_name : displayName}
+              </h2>
               <div className="text-gray-600 text-sm font-medium mb-3">Alumni</div>
               
               <div className="w-full max-w-[98%] md:max-w-[90%] lg:max-w-[98%] mx-auto mb-3">
-                  {profile.profile_picture_url ? (
+                  {activeProfile?.profile_picture_url ? (
                   <div className="aspect-square w-full relative">
                     {/* Outer circle frame with gold color */}
                     <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
@@ -759,26 +782,26 @@ function ProfileContent() {
                       className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] cursor-pointer"
                       onClick={() => setIsProfileLightboxOpen(true)}
                     >
-                      <Image
-                        src={profile.profile_picture_url}
-                        alt={`${fullName}'s profile picture`}
+                <Image
+                        src={activeProfile?.profile_picture_url}
+                        alt={`${isViewMode ? viewedProfile?.first_name + ' ' + viewedProfile?.last_name : fullName}'s profile picture`}
                         fill
                         className="object-cover"
-                        priority
-                      />
-                    </div>
-                    
+                  priority
+                />
+          </div>
+          
                     {/* Camera icon positioned to always be at the same position relative to the circle border */}
                       {isOwnProfile && (
                       <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
-                        <button 
+          <button 
                           onClick={handleUploadClick}
                           className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
                           aria-label="Change profile picture"
-                        >
+          >
                           <Camera size={20} className="text-[#7D1A1D]" />
-                        </button>
-                      </div>
+          </button>
+        </div>
                     )}
                   </div>
                 ) : (
@@ -789,8 +812,8 @@ function ProfileContent() {
                     {/* Initials with shadow on top */}
                     <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] bg-gray-200 flex items-center justify-center">
                       <span className="text-7xl font-bold text-[#7D1A1D]">{initials}</span>
-                      </div>
-                    
+            </div>
+            
                     {/* Camera icon positioned to always be at the same position relative to the circle border */}
                       {isOwnProfile && (
                       <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
@@ -865,36 +888,40 @@ function ProfileContent() {
                   </div>
                 ) :
                   <div className="flex flex-nowrap justify-center gap-1 px-1 overflow-x-auto max-w-full scrollbar-hide">
-                    {profile.section_1st_year ? (
-                      <span className="flex-shrink-0 bg-green-600 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {profile.section_1st_year}
-                      </span>
-                    ) : (
-                      <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
-                    )}
-                    
-                    {profile.section_2nd_year ? (
-                      <span className="flex-shrink-0 bg-amber-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {profile.section_2nd_year}
-                      </span>
-                    ) : (
-                      <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
-                    )}
-                    
-                    {profile.section_3rd_year ? (
-                      <span className="flex-shrink-0 bg-red-600 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {profile.section_3rd_year}
-                      </span>
-                    ) : (
-                      <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
-                    )}
-                    
-                    {profile.section_4th_year ? (
-                      <span className="flex-shrink-0 bg-blue-600 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {profile.section_4th_year}
-                      </span>
-                    ) : (
-                      <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
+                    {activeProfile && (
+                      <div className="flex flex-nowrap justify-center gap-1 px-1 overflow-x-auto max-w-full scrollbar-hide">
+                        {activeProfile.section_1st_year ? (
+                          <span className="flex-shrink-0 bg-green-600 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {activeProfile.section_1st_year}
+                          </span>
+                        ) : (
+                          <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
+                        )}
+                        
+                        {activeProfile.section_2nd_year ? (
+                          <span className="flex-shrink-0 bg-amber-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {activeProfile.section_2nd_year}
+                          </span>
+                        ) : (
+                          <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
+                        )}
+                        
+                        {activeProfile.section_3rd_year ? (
+                          <span className="flex-shrink-0 bg-red-600 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {activeProfile.section_3rd_year}
+                          </span>
+                        ) : (
+                          <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
+                        )}
+                        
+                        {activeProfile.section_4th_year ? (
+                          <span className="flex-shrink-0 bg-blue-600 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {activeProfile.section_4th_year}
+                          </span>
+                        ) : (
+                          <span className="flex-shrink-0 text-[10px] sm:text-xs text-gray-400">-</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 }
@@ -910,7 +937,7 @@ function ProfileContent() {
                   <span className="mr-1">Edit Sections</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
+                          </svg>
                         </button>
                       )}
               
@@ -934,24 +961,26 @@ function ProfileContent() {
                       </div>
 
             {/* Featured Photos Section */}
-            <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden order-3 mt-6">
-              <FeaturedPhotos 
-                userId={profile.id} 
-                userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
-                isOwnProfile={isOwnProfile}
-                onComplete={refetchProfile}
-              />
-                    </div>
+            {activeProfile && (
+              <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden order-3 mt-6">
+                <FeaturedPhotos 
+                  userId={activeProfile.id} 
+                  userFolderName={fullName.replace(/\s+/g, '_') || activeProfile.id}
+                  isOwnProfile={isOwnProfile}
+                  onComplete={refetchProfile}
+                />
               </div>
-              
+            )}
+          </div>
+          
           {/* Right Column */}
           <div className="contents md:contents-none md:block md:col-span-7">
             {/* Personal Information Section */}
             <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 order-2 relative">
               <h2 className="text-xl font-bold mb-6 flex items-center justify-between text-[#7D1A1D]">
                 {isOwnProfile ? "Personal Information" : "User Information"}
-                {isOwnProfile && (
-                  <button 
+                      {isOwnProfile && (
+                        <button 
                     onClick={() => setIsEditing(!isEditing)}
                     className={`flex items-center gap-1 transition-colors ${isEditing ? 'text-red-500 hover:text-red-600' : 'text-[#C9A335] hover:text-[#E5BD4F]'}`}
                     aria-label={isEditing ? "Cancel editing" : "Edit information"}
@@ -961,10 +990,10 @@ function ProfileContent() {
                     {!isEditing && (
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
+                          </svg>
                     )}
-                  </button>
-                )}
+                        </button>
+                      )}
               </h2>
 
               {isEditing && (
@@ -998,7 +1027,11 @@ function ProfileContent() {
                       <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
                         <FaIdCard className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words text-gray-800">{nameWithMiddleInitial}</p>
+                        <p className="font-medium break-words text-gray-800">
+                          {isViewMode ? 
+                            `${viewedProfile?.first_name} ${viewedProfile?.middle_name ? viewedProfile.middle_name + ' ' : ''}${viewedProfile?.last_name}` 
+                            : nameWithMiddleInitial}
+                        </p>
                       </div>
                     </div>
                   
@@ -1006,7 +1039,7 @@ function ProfileContent() {
                       <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
                       <div className="flex items-center">
                         <FaBirthdayCake className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words text-gray-800">{formatDate(profile.birthday)}</p>
+                        <p className="font-medium break-words text-gray-800">{formatDate(activeProfile?.birthday)}</p>
                       </div>
                     </div>
                   </div>
@@ -1029,7 +1062,7 @@ function ProfileContent() {
                             placeholder="Your profession"
                           />
                         ) : (
-                          <p className="font-medium break-words">{profile.profession ? <span className="text-gray-800">{profile.profession}</span> : <span className="text-gray-500">Not provided</span>}</p>
+                          <p className="font-medium break-words">{activeProfile?.profession ? <span className="text-gray-800">{activeProfile?.profession}</span> : <span className="text-gray-500">Not provided</span>}</p>
                         )}
                       </div>
                     </div>
@@ -1048,7 +1081,7 @@ function ProfileContent() {
                             placeholder="Your company"
                           />
                         ) : (
-                          <p className="font-medium break-words">{profile.company ? <span className="text-gray-800">{profile.company}</span> : <span className="text-gray-500">Not provided</span>}</p>
+                          <p className="font-medium break-words">{activeProfile?.company ? <span className="text-gray-800">{activeProfile?.company}</span> : <span className="text-gray-500">Not provided</span>}</p>
                   )}
                 </div>
               </div>
@@ -1062,7 +1095,7 @@ function ProfileContent() {
 
                 {/* Row 3: Phone | Email */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                  <div>
+                      <div>
                     <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
                       Phone
                       {!isEditing && isOwnProfile && (
@@ -1073,7 +1106,7 @@ function ProfileContent() {
                         >
                           <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.phone ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                             <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.phone ? 'translate-x-3' : ''}`} />
-              </div>
+                      </div>
                           <span className={localPrivacySettings?.phone ? 'text-[#C9A335]' : 'text-green-600'}>
                             {localPrivacySettings?.phone ? "Public" : "Private"}
                           </span>
@@ -1101,12 +1134,12 @@ function ProfileContent() {
                         <p className="font-medium break-words">
                           {(!isOwnProfile && !localPrivacySettings?.phone) 
                             ? <span className="text-gray-500">Private</span>
-                            : profile?.phone_number 
-                              ? <span className="text-gray-800">{profile.phone_number}</span>
+                            : activeProfile?.phone_number 
+                              ? <span className="text-gray-800">{activeProfile.phone_number}</span>
                               : <span className="text-gray-500">Not provided</span>}
                         </p>
                       )}
-              </div>
+                    </div>
             </div>
             
                   <div>
@@ -1143,12 +1176,12 @@ function ProfileContent() {
                           <p className="font-medium break-all text-sm sm:text-base">
                             {(!isOwnProfile && !localPrivacySettings?.email) 
                               ? <span className="text-gray-500">Private</span>
-                              : profile?.email 
-                                ? <span className="text-gray-800">{profile.email}</span>
+                              : activeProfile?.email 
+                                ? <span className="text-gray-800">{activeProfile.email}</span>
                                 : <span className="text-gray-500">Not provided</span>}
                           </p>
-                        )}
-                      </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1165,7 +1198,7 @@ function ProfileContent() {
                       >
                         <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.address ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                           <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.address ? 'translate-x-3' : ''}`} />
-            </div>
+              </div>
                         <span className={localPrivacySettings?.address ? 'text-[#C9A335]' : 'text-green-600'}>
                           {localPrivacySettings?.address ? "Public" : "Private"}
                         </span>
@@ -1186,19 +1219,19 @@ function ProfileContent() {
                         <div className="font-medium break-words">
                           {(!isOwnProfile && !localPrivacySettings?.address) 
                             ? <span className="text-gray-500">Private</span>
-                            : profile?.address 
-                              ? <span className="text-gray-800">{profile.address}</span>
+                            : activeProfile?.address 
+                              ? <span className="text-gray-800">{activeProfile.address}</span>
                               : <span className="text-gray-500">Not provided</span>}
                         </div>
                       )}
                     </div>
+              </div>
             </div>
-          </div>
-          
+            
                 {/* Separator */}
                 <div className="sm:col-span-2 mt-0 mb-0">
                   <div className="border-t border-gray-200"></div>
-            </div>
+              </div>
 
                 {/* Row 5: Spouse | Children */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-6">
@@ -1213,7 +1246,7 @@ function ProfileContent() {
                         >
                           <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.spouse ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                             <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.spouse ? 'translate-x-3' : ''}`} />
-                          </div>
+              </div>
                           <span className={localPrivacySettings?.spouse ? 'text-[#C9A335]' : 'text-green-600'}>
                             {localPrivacySettings?.spouse ? "Public" : "Private"}
                           </span>
@@ -1235,14 +1268,14 @@ function ProfileContent() {
                         <p className="font-medium break-words text-gray-500">
                           {(!isOwnProfile && !localPrivacySettings?.spouse) 
                             ? "Private" 
-                            : profile?.spouse_name 
-                              ? <span className="text-gray-800">{profile.spouse_name}</span>
+                            : activeProfile?.spouse_name 
+                              ? <span className="text-gray-800">{activeProfile.spouse_name}</span>
                               : <span className="text-gray-500">Not provided</span>}
                         </p>
                       )}
             </div>
           </div>
-
+          
                   <div>
                     <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
                       Children
@@ -1254,7 +1287,7 @@ function ProfileContent() {
                         >
                           <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.children ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
                             <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.children ? 'translate-x-3' : ''}`} />
-                          </div>
+            </div>
                           <span className={localPrivacySettings?.children ? 'text-[#C9A335]' : 'text-green-600'}>
                             {localPrivacySettings?.children ? "Public" : "Private"}
                           </span>
@@ -1281,7 +1314,7 @@ function ProfileContent() {
                                 </button>
                               </span>
                             ))}
-          </div>
+            </div>
                           <div className="relative">
                             <input
                               type="text"
@@ -1300,24 +1333,24 @@ function ProfileContent() {
                                 Add
                               </button>
                             )}
-        </div>
-                        </div>
+          </div>
+            </div>
                       ) : (
                         <p className="font-medium break-words">
                           {(!isOwnProfile && !localPrivacySettings?.children) 
                             ? <span className="text-gray-500">Private</span>
-                            : (profile?.children)
+                            : (activeProfile?.children)
                               ? <span className="text-gray-800">
-                                  {typeof profile.children === 'string' 
-                                    ? profile.children
-                                    : (profile.children as string[]).join(', ')}
+                                  {typeof activeProfile.children === 'string' 
+                                    ? activeProfile.children
+                                    : (activeProfile.children as string[]).join(', ')}
                                 </span>
                               : <span className="text-gray-500">Not provided</span>}
                         </p>
                       )}
                     </div>
-                  </div>
-                </div>
+            </div>
+          </div>
 
                 {/* Separator */}
                 <div className="sm:col-span-2 mt-4 mb-4">
@@ -1329,7 +1362,7 @@ function ProfileContent() {
                   <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
-                      {selectedHobbies.map((hobby) => {
+                      {(isViewMode ? parseHobbies(viewedProfile?.hobbies_interests || null) : selectedHobbies).map((hobby) => {
                         const category = getHobbyCategory(hobby);
                         return (
                           <span 
@@ -1338,7 +1371,7 @@ function ProfileContent() {
                           >
                             {hobby}
                             {isEditing && (
-                              <button 
+                              <button
                                 onClick={() => removeHobby(hobby)}
                                 className="ml-1 text-white/80 hover:text-white"
                                 type="button"
@@ -1349,7 +1382,7 @@ function ProfileContent() {
                           </span>
                         );
                       })}
-            </div>
+                    </div>
 
                     {isEditing && (
                       <div className="relative w-48">
@@ -1376,9 +1409,9 @@ function ProfileContent() {
                                 {hobby}
                               </button>
                             ))}
-          </div>
+                          </div>
                         )}
-        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1415,7 +1448,10 @@ function ProfileContent() {
       <Lightbox
         open={isProfileLightboxOpen}
         close={() => setIsProfileLightboxOpen(false)}
-        slides={profileSlide}
+        slides={[{
+          src: activeProfile?.profile_picture_url || '',
+          alt: `${isViewMode ? viewedProfile?.first_name + ' ' + viewedProfile?.last_name : fullName}'s profile picture`
+        }]}
         styles={{
           root: { backgroundColor: "rgba(0, 0, 0, .9)" },
           button: { filter: "none", color: "#fff" },
@@ -1449,45 +1485,36 @@ function ProfileContent() {
   )
 }
 
-// Wrapper component with provider
-export default function ProfilePage() {
+// Update the main ProfilePage component
+export default function ProfilePage({ viewProfileId }: ProfilePageProps) {
+  const [session, setSession] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
   
   useEffect(() => {
     const getUser = async () => {
         const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
+        setSession(session)
+        setIsLoading(false)
     }
-    
     getUser()
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null)
-      }
-    )
-    
-    return () => {
-      if (authListener && authListener.subscription) {
-        authListener.subscription.unsubscribe()
-      }
-    }
-  }, [supabase.auth])
+  }, [])
   
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A335]"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     )
   }
   
+  if (!session) {
+    return <LoginPage />
+  }
+  
   return (
-    <ProfileProvider user={user}>
-      <ProfileContent />
+    <ProfileProvider user={session.user}>
+      <ProfileContent viewProfileId={viewProfileId} />
     </ProfileProvider>
   )
 }
