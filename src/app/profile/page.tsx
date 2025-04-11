@@ -17,6 +17,7 @@ import AddressInput from '@/components/ui/AddressInput'
 import { useProfile, Profile } from '@/hooks/useProfile'
 import Header from '@/components/layout/Header' // Import Header
 import Footer from '@/components/layout/Footer' // Import Footer
+import Lightbox from "yet-another-react-lightbox"
 
 // Function to format date strings for display
 const formatDate = (dateString: string | null): string => {
@@ -307,21 +308,19 @@ function ProfileContent() {
       console.log('Optimistically updating profile data:', updatedData);
 
       // --- Optimistic Update --- 
-      // 1. Update local context immediately
-      // Format arrays back to strings *only* for the local context update 
-      // to match the potentially outdated Profile type definition.
-      // The database update will still use the correct array format.
-      const updatedDataForContext = {
-        ...updatedData,
-        hobbies_interests: formattedHobbies.join('; '), // Format hobbies back to string
-        children: childrenList.join(', '),           // Format children back to string
-      };
+      // Update local context immediately
       setProfile(currentProfile => 
-        currentProfile ? { ...currentProfile, ...updatedDataForContext } : null
+        currentProfile ? { 
+          ...currentProfile, 
+          ...updatedData,
+          // Convert to string for type compatibility but preserve array format in UI
+          children: childrenList.join(', '),
+          hobbies_interests: formattedHobbies.join('; ')
+        } : null
       );
-      // 2. Exit edit mode immediately for instant UI feedback
+      
+      // Exit edit mode immediately for instant UI feedback
       setIsEditing(false);
-      // -------------------------
 
       // 3. Update database in the background
       const { error: updateError, status } = await supabase
@@ -671,6 +670,15 @@ function ProfileContent() {
       .filter(c => c !== '');
   };
 
+  const [isProfileLightboxOpen, setIsProfileLightboxOpen] = useState(false)
+  
+  // Prepare profile picture slide for lightbox
+  const profileSlide = useMemo(() => profile?.profile_picture_url ? [{
+    src: profile.profile_picture_url,
+    alt: `${fullName}'s profile picture`,
+    title: fullName
+  }] : [], [profile?.profile_picture_url, fullName])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -725,258 +733,290 @@ function ProfileContent() {
     >
       <Header />
       
-      {/* Main Profile Content Area */}
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Profile</h1>
         </div>
-        
-        {/* Main Content */}
-        <div className="grid grid-cols-12 gap-6">
-          {/* Profile Card */}
-          <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 pb-3 sm:pb-6 flex flex-col items-center col-span-12 md:col-span-5 h-fit relative"> {/* Changed background back to white, added shadow */} 
-            <h2 className="text-3xl font-bold text-center mb-1 text-[#7D1A1D]">{displayName}</h2>
-            <div className="text-gray-600 text-sm font-medium mb-3">Alumni</div>
-            
-            <div className="w-full max-w-[98%] md:max-w-[90%] lg:max-w-[98%] mx-auto mb-3">
-              {/* Profile picture or initials */}
+
+        {/* New Layout Structure */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+          {/* Left Column */}
+          <div className="contents md:contents-none md:block md:col-span-5">
+            {/* Profile Picture Section */}
+            <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 pb-3 sm:pb-6 flex flex-col items-center order-1 relative">
+              <h2 className="text-3xl font-bold text-center mb-1 text-[#7D1A1D]">{displayName}</h2>
+              <div className="text-gray-600 text-sm font-medium mb-3">Alumni</div>
+              
+              <div className="w-full max-w-[98%] md:max-w-[90%] lg:max-w-[98%] mx-auto mb-3">
                   {profile.profile_picture_url ? (
-                <div className="aspect-square w-full relative">
-                  {/* Outer circle frame with gold color */}
-                  <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
-                  
-                  {/* Image with shadow on top */}
-                  <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)]">
-                <Image
+                  <div className="aspect-square w-full relative">
+                    {/* Outer circle frame with gold color */}
+                    <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
+                    
+                    {/* Image with shadow on top */}
+                    <div 
+                      className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] cursor-pointer"
+                      onClick={() => setIsProfileLightboxOpen(true)}
+                    >
+                      <Image
                         src={profile.profile_picture_url}
                         alt={`${fullName}'s profile picture`}
-                      fill
-                      className="object-cover"
-                  priority
-                />
-          </div>
-          
-                  {/* Camera icon positioned to always be at the same position relative to the circle border */}
-                      {isOwnProfile && (
-                    <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
-          <button 
-                          onClick={handleUploadClick}
-                        className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
-                          aria-label="Change profile picture"
-          >
-                        <Camera size={20} className="text-[#7D1A1D]" />
-          </button>
-        </div>
-                  )}
-                </div>
-              ) : (
-                <div className="aspect-square w-full relative">
-                  {/* Outer circle frame with gold color */}
-                  <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
-                  
-                  {/* Initials with shadow on top */}
-                  <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] bg-gray-200 flex items-center justify-center">
-                    <span className="text-7xl font-bold text-[#7D1A1D]">{initials}</span>
-            </div>
-            
-                  {/* Camera icon positioned to always be at the same position relative to the circle border */}
-                      {isOwnProfile && (
-                    <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
+                        fill
+                        className="object-cover"
+                        priority
+                      />
+                    </div>
+                    
+                    {/* Camera icon positioned to always be at the same position relative to the circle border */}
+                    {isOwnProfile && (
+                      <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
                         <button 
                           onClick={handleUploadClick}
-                        className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
+                          className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
+                          aria-label="Change profile picture"
+                        >
+                          <Camera size={20} className="text-[#7D1A1D]" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="aspect-square w-full relative">
+                    {/* Outer circle frame with gold color */}
+                    <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
+                    
+                    {/* Initials with shadow on top */}
+                    <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] bg-gray-200 flex items-center justify-center">
+                      <span className="text-7xl font-bold text-[#7D1A1D]">{initials}</span>
+                    </div>
+                    
+                    {/* Camera icon positioned to always be at the same position relative to the circle border */}
+                    {isOwnProfile && (
+                      <div className="absolute z-30" style={{ right: '8%', bottom: '11%', transform: 'translate(0%, 0%)' }}>
+                        <button 
+                          onClick={handleUploadClick}
+                          className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
                           aria-label="Add profile picture"
                         >
-                        <Camera size={20} className="text-[#7D1A1D]" />
+                          <Camera size={20} className="text-[#7D1A1D]" />
                         </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Display sections below profile picture */}
+              <div className="text-center mb-4 mt-2 relative">
+                {editingSections ? (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <div className="flex items-center">
+                      <select
+                        name="section_1st_year"
+                        value={editData.section_1st_year || FIRST_YEAR_SECTIONS[0]}
+                        onChange={handleInputChange}
+                        className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-green-600"
+                      >
+                        {FIRST_YEAR_SECTIONS.map((section) => (
+                          <option key={section} value={section}>{section}</option>
+                        ))}
+                      </select>
+              </div>
+              
+                    <div className="flex items-center">
+                      <select
+                        name="section_2nd_year"
+                        value={editData.section_2nd_year || SECOND_YEAR_SECTIONS[0]}
+                        onChange={handleInputChange}
+                        className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-amber-500"
+                      >
+                        {SECOND_YEAR_SECTIONS.map((section) => (
+                          <option key={section} value={section}>{section}</option>
+                        ))}
+                      </select>
+                      </div>
+                    
+                    <div className="flex items-center">
+                      <select
+                        name="section_3rd_year"
+                        value={editData.section_3rd_year || THIRD_YEAR_SECTIONS[0]}
+                        onChange={handleInputChange}
+                        className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-red-600"
+                      >
+                        {THIRD_YEAR_SECTIONS.map((section) => (
+                          <option key={section} value={section}>{section}</option>
+                        ))}
+                      </select>
                     </div>
-                      )}
-                </div>
-                  )}
-                </div>
-            
-            {/* Display sections below profile picture */}
-            <div className="text-center mb-4 mt-2 relative">
-              {editingSections ? (
-                <div className="flex flex-wrap justify-center gap-2">
-                  <div className="flex items-center">
-                    <select
-                      name="section_1st_year"
-                      value={editData.section_1st_year || FIRST_YEAR_SECTIONS[0]}
-                      onChange={handleInputChange}
-                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-green-600"
-                    >
-                      {FIRST_YEAR_SECTIONS.map((section) => (
-                        <option key={section} value={section}>{section}</option>
-                      ))}
-                    </select>
+                    
+                    <div className="flex items-center">
+                      <select
+                        name="section_4th_year"
+                        value={editData.section_4th_year || FOURTH_YEAR_SECTIONS[0]}
+                        onChange={handleInputChange}
+                        className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-blue-600"
+                      >
+                        {FOURTH_YEAR_SECTIONS.map((section) => (
+                          <option key={section} value={section}>{section}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <select
-                      name="section_2nd_year"
-                      value={editData.section_2nd_year || SECOND_YEAR_SECTIONS[0]}
-                      onChange={handleInputChange}
-                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-amber-500"
-                    >
-                      {SECOND_YEAR_SECTIONS.map((section) => (
-                        <option key={section} value={section}>{section}</option>
-                      ))}
-                    </select>
+                ) : (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {profile.section_1st_year ? (
+                      <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {profile.section_1st_year}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
+                    
+                    {profile.section_2nd_year ? (
+                      <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {profile.section_2nd_year}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
+                    
+                    {profile.section_3rd_year ? (
+                      <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {profile.section_3rd_year}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
+                    
+                    {profile.section_4th_year ? (
+                      <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {profile.section_4th_year}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
                   </div>
-                  
-                  <div className="flex items-center">
-                    <select
-                      name="section_3rd_year"
-                      value={editData.section_3rd_year || THIRD_YEAR_SECTIONS[0]}
-                      onChange={handleInputChange}
-                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-red-600"
-                    >
-                      {THIRD_YEAR_SECTIONS.map((section) => (
-                        <option key={section} value={section}>{section}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <select
-                      name="section_4th_year"
-                      value={editData.section_4th_year || FOURTH_YEAR_SECTIONS[0]}
-                      onChange={handleInputChange}
-                      className="bg-[#333333] text-xs border-0 rounded-full px-2 py-0.5 text-white focus:outline-none focus:ring-1 focus:ring-[#C9A335] bg-blue-600"
-                    >
-                      {FOURTH_YEAR_SECTIONS.map((section) => (
-                        <option key={section} value={section}>{section}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap justify-center gap-2">
-                  {profile.section_1st_year ? (
-                    <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
-                      {profile.section_1st_year}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 text-xs">-</span>
-                  )}
-                  
-                  {profile.section_2nd_year ? (
-                    <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      {profile.section_2nd_year}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 text-xs">-</span>
-                  )}
-                  
-                  {profile.section_3rd_year ? (
-                    <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                      {profile.section_3rd_year}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 text-xs">-</span>
-                  )}
-                  
-                  {profile.section_4th_year ? (
-                    <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                      {profile.section_4th_year}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 text-xs">-</span>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Edit Sections button - Moved to be relative to the card */}
-            {isOwnProfile && !editingSections && (
-              <button 
-                onClick={startEditingSections}
-                className="absolute bottom-3 right-6 text-gray-500 hover:text-[#7D1A1D] transition-colors flex items-center text-xs"
-                aria-label="Edit sections"
-              >
-                <span className="mr-1">Edit Sections</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                          </svg>
+                )}
+              </div>
+              
+              {/* Edit Sections button - Moved to be relative to the card */}
+              {isOwnProfile && !editingSections && (
+                <button 
+                  onClick={startEditingSections}
+                  className="absolute bottom-3 right-6 text-gray-500 hover:text-[#7D1A1D] transition-colors flex items-center text-xs"
+                  aria-label="Edit sections"
+                >
+                  <span className="mr-1">Edit Sections</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
                         </button>
                       )}
-            
-            {isOwnProfile && editingSections && (
-              <button 
-                onClick={hasChangedSections() ? saveSectionChanges : cancelEditingSections}
-                className="absolute bottom-3 right-6 text-gray-500 hover:text-[#7D1A1D] transition-colors flex items-center text-xs"
-                aria-label={hasChangedSections() ? "Apply section changes" : "Cancel editing sections"}
-              >
-                {hasChangedSections() ? (
-                  <>
-                    <span className="mr-1">Apply</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+              
+              {isOwnProfile && editingSections && (
+                <button 
+                  onClick={hasChangedSections() ? saveSectionChanges : cancelEditingSections}
+                  className="absolute bottom-3 right-6 text-gray-500 hover:text-[#7D1A1D] transition-colors flex items-center text-xs"
+                  aria-label={hasChangedSections() ? "Apply section changes" : "Cancel editing sections"}
+                >
+                  {hasChangedSections() ? (
+                    <>
+                      <span className="mr-1">Apply</span>
                     </>
                   ) : (
                     <>
-                    <span className="mr-1">Cancel</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            )}
-                      </div>
-              
-          {/* Bio & Details Card */}
-          <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 col-span-12 md:col-span-7 relative"> {/* Changed background back to white, added shadow */} 
-            <h2 className="text-xl font-bold mb-6 flex items-center justify-between text-[#7D1A1D]">
-              {isOwnProfile ? "Personal Information" : "User Information"}
-                      {isOwnProfile && (
-                        <button 
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="text-[#C9A335] hover:text-[#E5BD4F] transition-colors"
-                  aria-label={isEditing ? "Cancel editing" : "Edit information"}
-                  disabled={isSaving}
-                >
-                  {isEditing ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
+                      <span className="mr-1">Cancel</span>
+                    </>
                   )}
-                        </button>
-                      )}
-            </h2>
-            
-            {isEditing ? (
-              /* Edit Mode - Same layout as view mode */
-              <div className="space-y-5">
-                <div className="p-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+                </button>
+                  )}
+                      </div>
+
+            {/* Featured Photos Section */}
+            <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden order-3 mt-6">
+              <FeaturedPhotos 
+                userId={profile.id} 
+                userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
+                isOwnProfile={isOwnProfile}
+                onComplete={refetchProfile}
+              />
+                    </div>
+              </div>
+              
+          {/* Right Column */}
+          <div className="contents md:contents-none md:block md:col-span-7">
+            {/* Personal Information Section */}
+            <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 order-2 relative">
+              <h2 className="text-xl font-bold mb-6 flex items-center justify-between text-[#7D1A1D]">
+                {isOwnProfile ? "Personal Information" : "User Information"}
+                {isOwnProfile && (
+                  <button 
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={`flex items-center gap-1 transition-colors ${isEditing ? 'text-red-500 hover:text-red-600' : 'text-[#C9A335] hover:text-[#E5BD4F]'}`}
+                    aria-label={isEditing ? "Cancel editing" : "Edit information"}
+                    disabled={isSaving}
+                  >
+                    <span className="text-xs font-normal">{isEditing ? "Cancel" : "Edit Info"}</span>
+                    {!isEditing && (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+              </h2>
+
+              {isEditing && (
+                <div className="absolute bottom-3 right-6">
+                  <button
+                    onClick={handleSaveProfile}
+                    className="text-[#C9A335] hover:text-[#E5BD4F] transition-colors flex items-center text-xs"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                        Saving...
+                      </>
+                    ) : (
+                      'Apply'
+                    )}
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {/* First four fields with reduced spacing */}
+                <div className="p-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
                     {/* Row 1: Full Name | Birthday */}
                       <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
                       <div className="flex items-center">
                         <FaIdCard className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words text-gray-800">{nameWithMiddleInitial}</p> {/* Added text-gray-800 */}
+                        <p className="font-medium break-words text-gray-800">{nameWithMiddleInitial}</p>
                       </div>
                     </div>
-                    
-                    <div>
-                      <p className="text-xs text-gray-400 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
+                  
+                      <div>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
                       <div className="flex items-center">
                         <FaBirthdayCake className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words text-gray-800">{formatDate(profile.birthday)}</p> {/* Added text-gray-800 */}
+                        <p className="font-medium break-words text-gray-800">{formatDate(profile.birthday)}</p>
                       </div>
                     </div>
-                    
-                    {/* Row 2: Profession | Company */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p> {/* Changed label color */} 
+                  </div>
+                </div>
+
+                {/* Row 2: Profession | Company */}
+                <div className="p-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+                      <div>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p>
                       <div className="flex items-center">
                         <FaBriefcase className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
@@ -985,17 +1025,17 @@ function ProfileContent() {
                             name="profession"
                             value={editData.profession || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
                             placeholder="Your profession"
                           />
                         ) : (
-                          <p className="font-medium break-words text-gray-500">{profile.profession || 'Not provided'}</p>
-                  )}
-                </div>
-              </div>
-              
-                      <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Company</p> {/* Changed label color */} 
+                          <p className="font-medium break-words">{profile.profession ? <span className="text-gray-800">{profile.profession}</span> : <span className="text-gray-500">Not provided</span>}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Company</p>
                       <div className="flex items-center">
                         <FaBuilding className="h-5 w-5 text-gray-600 mr-3" />
                         {isEditing ? (
@@ -1004,629 +1044,350 @@ function ProfileContent() {
                             name="company"
                             value={editData.company || ''}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
                             placeholder="Your company"
                           />
                         ) : (
-                          <p className="font-medium break-words text-gray-500">{profile.company || 'Not provided'}</p>
-                        )}
-                      </div>
-                    </div>
-                  
-                    {/* Separator */}
-                    <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-200"></div> {/* Changed from border-gray-700 */}
-                   </div>
-                  
-                    {/* Row 3: Phone | Email */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Phone
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('phone')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.phone ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.phone ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.phone ? 'translate-x-3' : ''}`} />
-                            </div>
-                            <span className={localPrivacySettings?.phone ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.phone ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-center">
-                        <FaPhone className="h-5 w-5 text-gray-600 mr-3" />
-                        {isEditing ? (
-                          <input
-                            type="tel"
-                            name="phone_number"
-                            value={editData.phone_number || ''}
-                            onChange={handleInputChange}
-                            pattern="[0-9]*"
-                            onKeyPress={(e) => {
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                            placeholder="Your phone number"
-                          />
-                        ) : (
-                          <p className="font-medium break-words text-gray-500">
-                            {(!isOwnProfile && !localPrivacySettings?.phone) 
-                              ? "Private" 
-                              : (profile?.phone_number || 'Not provided')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    
-                      <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Email
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('email')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.email ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.email ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.email ? 'translate-x-3' : ''}`} />
-                      </div>
-                            <span className={localPrivacySettings?.email ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.email ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-start">
-                        <IoIosMail className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          {isEditing ? (
-                            <input
-                              type="email"
-                              name="email"
-                              value={editData.email || ''}
-                              onChange={handleInputChange}
-                              className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                              placeholder="Your email address"
-                            />
-                          ) : (
-                            <p className="font-medium break-all text-sm sm:text-base text-gray-500">
-                              {(!isOwnProfile && !localPrivacySettings?.email) 
-                                ? "Private" 
-                                : (profile?.email || 'Not provided')}
-                            </p>
-                          )}
-                    </div>
-                      </div>
-                    </div>
-                    
-                    {/* Row 4: Address */}
-                    <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Address
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('address')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.address ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.address ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.address ? 'translate-x-3' : ''}`} />
-                            </div>
-                            <span className={localPrivacySettings?.address ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.address ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-start">
-                        <FaLocationDot className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
-                        <div className="flex-1">
-                          {isEditing ? (
-                            <AddressInput
-                              value={editData.address}
-                              onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
-                              isEditing={isEditing}
-                              className="w-full" // AddressInput handles its own styles based on isEditing
-                              // Pass light theme specific styles if needed via props, e.g., inputClassName="bg-gray-50 ..."
-                            />
-                          ) : (
-                            <div className="font-medium break-words text-gray-500">
-                              {(!isOwnProfile && !localPrivacySettings?.address) 
-                                ? "Private" 
-                                : (profile?.address || 'Not provided')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Separator */}
-                    <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-700"></div>
-                    </div>
-                    
-                    {/* Row 5: Spouse | Children */}
-                      <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Spouse
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('spouse')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.spouse ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.spouse ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.spouse ? 'translate-x-3' : ''}`} />
-                      </div>
-                            <span className={localPrivacySettings?.spouse ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.spouse ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-center">
-                        <GiBigDiamondRing className="h-5 w-5 text-gray-600 mr-3" />
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="spouse_name"
-                            value={editData.spouse_name || ''}
-                            onChange={handleInputChange}
-                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                            placeholder="Spouse's name"
-                          />
-                        ) : (
-                          <p className="font-medium break-words text-gray-500">
-                            {(!isOwnProfile && !localPrivacySettings?.spouse) 
-                              ? "Private" 
-                              : (profile?.spouse_name || 'Not provided')}
-                          </p>
-                        )}
-                    </div>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Children
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('children')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.children ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.children ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.children ? 'translate-x-3' : ''}`} />
-                            </div>
-                            <span className={localPrivacySettings?.children ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.children ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-start">
-                        <FaChildren className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
-                        {isEditing ? (
-                          <div className="flex-1">
-                            <div className="flex flex-wrap gap-1 items-center">
-                              {childrenList.map((child, index) => (
-                                <span 
-                                  key={index}
-                                  className="bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-400 flex items-center" // Light theme badge
-                                >
-                                  {child}
-                                  <button 
-                                    onClick={() => removeChild(index)}
-                                    className="ml-1 text-gray-600 hover:text-gray-800" // Light theme remove button
-                                    type="button"
-                                  >
-                                    ×
-                                  </button>
-                                </span>
-                              ))}
-                              <input
-                                type="text"
-                                value={currentChild}
-                                onChange={(e) => setCurrentChild(e.target.value)}
-                                onKeyDown={handleChildKeyDown}
-                                className="bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium w-full placeholder-gray-400" // Removed px-2 py-1
-                                placeholder="Add child's name and press Enter"
-                              />
-                </div>
-              </div>
-                        ) : (
-                          <p className="font-medium break-words"> {/* Removed text-gray-500 */}
-                            {(!isOwnProfile && !localPrivacySettings?.children) 
-                              ? <span className="text-gray-500">Private</span> // Added span for color
-                              : (profile?.children && Array.isArray(profile.children) && profile.children.length > 0)
-                                ? <span className="text-gray-800">{profile.children.join(', ')}</span> // Display joined array if exists
-                                : <span className="text-gray-500">Not provided</span> // Otherwise show Not provided
-                            }
-                          </p>
-                        )}
-            </div>
-          </div>
-          
-                    {/* Separator */}
-                    <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-700"></div>
-              </div>
-                    
-                    {/* Row 6: Hobbies & Interests (spanning both columns) */}
-                    <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p> {/* Changed label color */} 
-                      <div>
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {selectedHobbies.map((hobby) => {
-                            const category = getHobbyCategory(hobby);
-                            return (
-                              <span 
-                                key={hobby}
-                                className={`${HOBBY_CATEGORIES[category].color} text-white text-xs px-2 py-0.5 rounded-full flex items-center`}
-                              >
-                                {hobby}
-                                {isEditing && (
-                                  <button 
-                                    onClick={() => removeHobby(hobby)}
-                                    className="ml-1 text-white/80 hover:text-white"
-                                    type="button"
-                                  >
-                                    ×
-                                  </button>
-                                )}
-                              </span>
-                            );
-                          })}
-                      </div>
-          
-                        {isEditing && (
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={currentHobby}
-                              onChange={handleHobbyInputChange}
-                              onKeyDown={handleHobbyKeyDown}
-                              className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                              placeholder="Add a hobby and press Enter"
-                            />
-                            {showSuggestions && filteredSuggestions.length > 0 && (
-                              <div 
-                                ref={suggestionsRef} 
-                                className="absolute z-10 mt-1 w-full max-h-28 overflow-y-auto bg-[#1E1E1E] rounded shadow-md border border-gray-700"
-                              >
-                                {filteredSuggestions.map((hobby) => (
-                                  <button
-                                    key={hobby}
-                                    onClick={() => addHobby(hobby)}
-                                    className="text-left text-sm text-gray-300 hover:bg-[#333333] px-2 py-1 w-full"
-                                    type="button"
-                                  >
-                                    {hobby}
-                                  </button>
-                                ))}
-                    </div>
+                          <p className="font-medium break-words">{profile.company ? <span className="text-gray-800">{profile.company}</span> : <span className="text-gray-500">Not provided</span>}</p>
                   )}
                 </div>
-                        )}
               </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* View Mode - Original Content */
-              <div className="space-y-5">
-                <div className="p-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                    {/* Row 1: Full Name | Birthday */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Full name</p>
-                      <div className="flex items-center">
-                        <FaIdCard className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words text-gray-800">{nameWithMiddleInitial}</p>
             </div>
           </div>
           
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Birthday</p>
-                      <div className="flex items-center">
-                        <FaBirthdayCake className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words text-gray-800">{formatDate(profile.birthday)}</p>
+                {/* Separator with more spacing before privacy-enabled fields */}
+                <div className="sm:col-span-2 my-2">
+                  <div className="border-t border-gray-200"></div>
               </div>
-              </div>
-                    
-                    {/* Row 2: Profession | Company */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Profession</p> {/* Changed label color */} 
-                      <div className="flex items-center">
-                        <FaBriefcase className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words">{profile.profession ? <span className="text-gray-800">{profile.profession}</span> : <span className="text-gray-500">Not provided</span>}</p>
-              </div>
-            </div>
-            
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Company</p> {/* Changed label color */} 
-                      <div className="flex items-center">
-                        <FaBuilding className="h-5 w-5 text-gray-600 mr-3" />
-                        <p className="font-medium break-words">{profile.company ? <span className="text-gray-800">{profile.company}</span> : <span className="text-gray-500">Not provided</span>}</p>
-              </div>
-              </div>
-                  
-                    {/* Separator */}
-                    <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-200"></div>
-          </div>
-          
-                    {/* Row 3: Phone | Email */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Phone
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('phone')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.phone ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.phone ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.phone ? 'translate-x-3' : ''}`} />
-            </div>
-                            <span className={localPrivacySettings?.phone ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.phone ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-center">
-                        <FaPhone className="h-5 w-5 text-gray-600 mr-3" />
-                        {isEditing ? (
-                          <input
-                            type="tel"
-                            name="phone_number"
-                            value={editData.phone_number || ''}
-                            onChange={handleInputChange}
-                            pattern="[0-9]*"
-                            onKeyPress={(e) => {
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                            placeholder="Your phone number"
-                          />
-                        ) : (
-                          <p className="font-medium break-words text-gray-500">
-                            {(!isOwnProfile && !localPrivacySettings?.phone) 
-                              ? "Private" 
-                              : profile?.phone_number 
-                                ? <span className="text-gray-800">{profile.phone_number}</span>
-                                : <span className="text-gray-500">Not provided</span>}
-                          </p>
-                        )}
-            </div>
-          </div>
-          
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Email
-                        {!isEditing && isOwnProfile && (
-            <button
-                            onClick={() => updatePrivacySetting('email')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.email ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.email ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.email ? 'translate-x-3' : ''}`} />
-            </div>
-                            <span className={localPrivacySettings?.email ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.email ? "Public" : "Private"}
-                            </span>
-            </button>
-                        )}
-                      </p>
-                      <div className="flex items-start">
-                        <IoIosMail className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          {isEditing ? (
-                            <input
-                              type="email"
-                              name="email"
-                              value={editData.email || ''}
-                              onChange={handleInputChange}
-                              className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                              placeholder="Your email address"
-                            />
-                          ) : (
-                            <p className="font-medium break-all text-sm sm:text-base text-gray-500">
-                              {(!isOwnProfile && !localPrivacySettings?.email) 
-                                ? "Private" 
-                                : profile?.email 
-                                  ? <span className="text-gray-800">{profile.email}</span>
-                                  : <span className="text-gray-500">Not provided</span>}
-                            </p>
-                          )}
-          </div>
-            </div>
-          </div>
-          
-                    {/* Row 4: Address */}
-                    <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Address
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('address')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.address ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.address ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.address ? 'translate-x-3' : ''}`} />
-            </div>
-                            <span className={localPrivacySettings?.address ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.address ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-start">
-                        <FaLocationDot className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
-                        <div className="flex-1">
-                          {/* AddressInput handles its own view/edit state styling */} 
-                          <AddressInput
-                            value={profile.address}
-                            onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
-                            isEditing={isEditing}
-                            className="w-full" // Removed viewClassName, className applies base styles
-                          />
-            </div>
-            </div>
-          </div>
 
-                    {/* Separator */}
-                    <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-200"></div>
-                    </div>
-                    
-                    {/* Row 5: Spouse | Children */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Spouse
-                        {!isEditing && isOwnProfile && (
-            <button
-                            onClick={() => updatePrivacySetting('spouse')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.spouse ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.spouse ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.spouse ? 'translate-x-3' : ''}`} />
-                            </div>
-                            <span className={localPrivacySettings?.spouse ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.spouse ? "Public" : "Private"}
-                            </span>
-            </button>
-                        )}
-                      </p>
-                      <div className="flex items-center">
-                        <GiBigDiamondRing className="h-5 w-5 text-gray-600 mr-3" />
-                        {isEditing ? (
-      <input 
-                            type="text"
-                            name="spouse_name"
-                            value={editData.spouse_name || ''}
-                            onChange={handleInputChange}
-                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400" // Removed px-2 py-1
-                            placeholder="Spouse's name"
-                          />
-                        ) : (
-                          <p className="font-medium break-words text-gray-500">
-                            {(!isOwnProfile && !localPrivacySettings?.spouse) 
-                              ? "Private" 
-                              : profile?.spouse_name 
-                                ? <span className="text-gray-800">{profile.spouse_name}</span>
-                                : <span className="text-gray-500">Not provided</span>}
-                          </p>
-                        )}
-          </div>
-        </div>
-
-                    <div>
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2"> {/* Changed label color */} 
-                        Children
-                        {!isEditing && isOwnProfile && (
-                          <button
-                            onClick={() => updatePrivacySetting('children')}
-                            className="flex items-center gap-1 text-[10px]"
-                            title={localPrivacySettings?.children ? "Click to make private" : "Click to make public"}
-                          >
-                            <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.children ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
-                              <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.children ? 'translate-x-3' : ''}`} />
-            </div>
-                            <span className={localPrivacySettings?.children ? 'text-[#C9A335]' : 'text-green-600'}>
-                              {localPrivacySettings?.children ? "Public" : "Private"}
-                            </span>
-                          </button>
-                        )}
-                      </p>
-                      <div className="flex items-start">
-                        <FaChildren className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
+                {/* Row 3: Phone | Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+                  <div>
+                    <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      Phone
+                      {!isEditing && isOwnProfile && (
+                        <button
+                          onClick={() => updatePrivacySetting('phone')}
+                          className="flex items-center gap-1 text-[10px]"
+                          title={localPrivacySettings?.phone ? "Click to make private" : "Click to make public"}
+                        >
+                          <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.phone ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
+                            <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.phone ? 'translate-x-3' : ''}`} />
+              </div>
+                          <span className={localPrivacySettings?.phone ? 'text-[#C9A335]' : 'text-green-600'}>
+                            {localPrivacySettings?.phone ? "Public" : "Private"}
+                          </span>
+                        </button>
+                      )}
+                    </p>
+                    <div className="flex items-center">
+                      <FaPhone className="h-5 w-5 text-gray-600 mr-3" />
+                      {isEditing ? (
+                        <input
+                          type="tel"
+                          name="phone_number"
+                          value={editData.phone_number || ''}
+                          onChange={handleInputChange}
+                          pattern="[0-9]*"
+                          onKeyPress={(e) => {
+                            if (!/[0-9]/.test(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
+                          placeholder="Your phone number"
+                        />
+                      ) : (
                         <p className="font-medium break-words">
-                          {(!isOwnProfile && !localPrivacySettings?.children) 
-                            ? <span className="text-gray-500">Private</span> 
-                            : (profile?.children && Array.isArray(profile.children) && profile.children.length > 0)
-                              ? <span className="text-gray-800">{profile.children.join(', ')}</span> // Correctly join the array with comma and space
+                          {(!isOwnProfile && !localPrivacySettings?.phone) 
+                            ? <span className="text-gray-500">Private</span>
+                            : profile?.phone_number 
+                              ? <span className="text-gray-800">{profile.phone_number}</span>
                               : <span className="text-gray-500">Not provided</span>}
                         </p>
+                      )}
+              </div>
+            </div>
+            
+                  <div>
+                    <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                      Email
+                      {!isEditing && isOwnProfile && (
+                        <button
+                          onClick={() => updatePrivacySetting('email')}
+                          className="flex items-center gap-1 text-[10px]"
+                          title={localPrivacySettings?.email ? "Click to make private" : "Click to make public"}
+                        >
+                          <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.email ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
+                            <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.email ? 'translate-x-3' : ''}`} />
+              </div>
+                          <span className={localPrivacySettings?.email ? 'text-[#C9A335]' : 'text-green-600'}>
+                            {localPrivacySettings?.email ? "Public" : "Private"}
+                          </span>
+                        </button>
+                      )}
+                    </p>
+                    <div className="flex items-start">
+                      <IoIosMail className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        {isEditing ? (
+                          <input
+                            type="email"
+                            name="email"
+                            value={editData.email || ''}
+                            onChange={handleInputChange}
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
+                            placeholder="Your email address"
+                          />
+                        ) : (
+                          <p className="font-medium break-all text-sm sm:text-base">
+                            {(!isOwnProfile && !localPrivacySettings?.email) 
+                              ? <span className="text-gray-500">Private</span>
+                              : profile?.email 
+                                ? <span className="text-gray-800">{profile.email}</span>
+                                : <span className="text-gray-500">Not provided</span>}
+                          </p>
+                        )}
+                      </div>
+              </div>
+            </div>
+          </div>
+          
+                {/* Row 4: Address */}
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                    Address
+                    {!isEditing && isOwnProfile && (
+                      <button
+                        onClick={() => updatePrivacySetting('address')}
+                        className="flex items-center gap-1 text-[10px]"
+                        title={localPrivacySettings?.address ? "Click to make private" : "Click to make public"}
+                      >
+                        <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.address ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
+                          <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.address ? 'translate-x-3' : ''}`} />
+            </div>
+                        <span className={localPrivacySettings?.address ? 'text-[#C9A335]' : 'text-green-600'}>
+                          {localPrivacySettings?.address ? "Public" : "Private"}
+                        </span>
+                      </button>
+                    )}
+                  </p>
+                  <div className="flex items-start">
+                    <FaLocationDot className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <AddressInput
+                          value={editData.address}
+                          onChange={(value) => setEditData(prev => ({ ...prev, address: value }))}
+                          isEditing={isEditing}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="font-medium break-words">
+                          {(!isOwnProfile && !localPrivacySettings?.address) 
+                            ? <span className="text-gray-500">Private</span>
+                            : profile?.address 
+                              ? <span className="text-gray-800">{profile.address}</span>
+                              : <span className="text-gray-500">Not provided</span>}
+                        </div>
+                      )}
+                    </div>
+            </div>
+          </div>
+          
+                {/* Separator */}
+                <div className="sm:col-span-2 mt-0 mb-0">
+                  <div className="border-t border-gray-200"></div>
+            </div>
+
+                {/* Row 5: Spouse | Children */}
+                <div>
+                  <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                    Spouse
+                    {!isEditing && isOwnProfile && (
+                      <button
+                        onClick={() => updatePrivacySetting('spouse')}
+                        className="flex items-center gap-1 text-[10px]"
+                        title={localPrivacySettings?.spouse ? "Click to make private" : "Click to make public"}
+                      >
+                        <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.spouse ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
+                          <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.spouse ? 'translate-x-3' : ''}`} />
+                        </div>
+                        <span className={localPrivacySettings?.spouse ? 'text-[#C9A335]' : 'text-green-600'}>
+                          {localPrivacySettings?.spouse ? "Public" : "Private"}
+                        </span>
+                      </button>
+                    )}
+                  </p>
+                  <div className="flex items-center">
+                    <GiBigDiamondRing className="h-5 w-5 text-gray-600 mr-3" />
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="spouse_name"
+                        value={editData.spouse_name || ''}
+                        onChange={handleInputChange}
+                        className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
+                        placeholder="Spouse's name"
+                      />
+                    ) : (
+                      <p className="font-medium break-words text-gray-500">
+                        {(!isOwnProfile && !localPrivacySettings?.spouse) 
+                          ? "Private" 
+                          : profile?.spouse_name 
+                            ? <span className="text-gray-800">{profile.spouse_name}</span>
+                            : <span className="text-gray-500">Not provided</span>}
+                      </p>
+                    )}
             </div>
           </div>
 
-                    {/* Separator */}
-                    <div className="sm:col-span-2 mt-0 mb-0">
-                      <div className="border-t border-gray-200"></div>
-        </div>
-                    
-                    {/* Row 6: Hobbies & Interests (spanning both columns) */}
-                    <div className="sm:col-span-2">
-                      <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p> {/* Changed label color */} 
-                      <div>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedHobbies.length > 0 ? (
-                            selectedHobbies.map((hobby) => {
-                              const category = getHobbyCategory(hobby);
-                              return (
-                                <span 
-                                  key={hobby}
-                                  className={`${HOBBY_CATEGORIES[category].color} text-white text-xs px-2 py-0.5 rounded-full`}
-                                >
-                                  {hobby}
-                                </span>
-                              );
-                            })
-                          ) : (
-                            <p className="font-medium text-gray-500">Not provided</p>
-                          )}
+                <div>
+                  <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1 flex items-center gap-2">
+                    Children
+                    {!isEditing && isOwnProfile && (
+            <button
+                        onClick={() => updatePrivacySetting('children')}
+                        className="flex items-center gap-1 text-[10px]"
+                        title={localPrivacySettings?.children ? "Click to make private" : "Click to make public"}
+                      >
+                        <div className={`w-6 h-3 rounded-full transition-colors ${localPrivacySettings?.children ? 'bg-[#C9A335]' : 'bg-green-600'} relative`}>
+                          <div className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-white transition-transform ${localPrivacySettings?.children ? 'translate-x-3' : ''}`} />
                         </div>
+                        <span className={localPrivacySettings?.children ? 'text-[#C9A335]' : 'text-green-600'}>
+                          {localPrivacySettings?.children ? "Public" : "Private"}
+                        </span>
+            </button>
+                    )}
+                  </p>
+                  <div className="flex items-start">
+                    <FaChildren className="h-5 w-5 text-gray-600 mr-3 flex-shrink-0 mt-1" />
+                    {isEditing ? (
+                      <div className="flex-1">
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {childrenList.map((child, index) => (
+                            <span 
+                              key={index}
+                              className="bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded border border-gray-400 flex items-center"
+                            >
+                              {child}
+                              <button 
+                                onClick={() => removeChild(index)}
+                                className="ml-1 text-gray-500 hover:text-gray-700"
+                                type="button"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+          </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={currentChild}
+                            onChange={(e) => setCurrentChild(e.target.value)}
+                            onKeyDown={handleChildKeyDown}
+                            className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400 pr-16"
+                            placeholder="Add child's name"
+                          />
+                          {currentChild.trim() && (
+                            <button
+                              onClick={() => addChild(currentChild)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-[#006633] hover:text-[#005528] transition-colors font-medium text-sm"
+                              type="button"
+                            >
+                              Add
+                            </button>
+                          )}
+        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <p className="font-medium break-words">
+                        {(!isOwnProfile && !localPrivacySettings?.children) 
+                          ? <span className="text-gray-500">Private</span>
+                          : (profile?.children)
+                            ? <span className="text-gray-800">
+                                {typeof profile.children === 'string' 
+                                  ? profile.children
+                                  : (profile.children as string[]).join(', ')}
+                              </span>
+                            : <span className="text-gray-500">Not provided</span>}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Separator */}
+                <div className="sm:col-span-2 mt-0 mb-0">
+                  <div className="border-t border-gray-200"></div>
+            </div>
+
+                {/* Row 6: Hobbies & Interests (spanning both columns) */}
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-gray-500 font-['Roboto'] capitalize tracking-wide mb-1">Hobbies & interests</p>
+                  <div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {selectedHobbies.map((hobby) => {
+                        const category = getHobbyCategory(hobby);
+                        return (
+                          <span 
+                            key={hobby}
+                            className={`${HOBBY_CATEGORIES[category].color} text-white text-xs px-2 py-0.5 rounded-full flex items-center`}
+                          >
+                            {hobby}
+                            {isEditing && (
+                              <button 
+                                onClick={() => removeHobby(hobby)}
+                                className="ml-1 text-white/80 hover:text-white"
+                                type="button"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
+            </div>
+
+                    {isEditing && (
+                      <div className="relative w-48">
+                        <input
+                          type="text"
+                          value={currentHobby}
+                          onChange={handleHobbyInputChange}
+                          onKeyDown={handleHobbyKeyDown}
+                          className="w-full bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded font-medium placeholder-gray-400"
+                          placeholder="Add a hobby then Enter"
+                        />
+                        {showSuggestions && filteredSuggestions.length > 0 && (
+                          <div 
+                            ref={suggestionsRef} 
+                            className="absolute z-10 mt-1 w-full max-h-28 overflow-y-auto bg-[#1E1E1E] rounded shadow-md border border-gray-700"
+                          >
+                            {filteredSuggestions.map((hobby) => (
+                              <button
+                                key={hobby}
+                                onClick={() => addHobby(hobby)}
+                                className="text-left text-sm text-gray-300 hover:bg-[#333333] px-2 py-1 w-full"
+                                type="button"
+                              >
+                                {hobby}
+                              </button>
+                            ))}
+          </div>
+                        )}
+        </div>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
-            
-            {/* Save Button - Floating at bottom */}
-            {isEditing && (
-            <button
-                onClick={handleSaveProfile}
-                className="absolute bottom-3 right-6 text-green-500 hover:text-green-400 transition-colors flex items-center text-sm"
-                disabled={isSaving}
-                aria-label="Save changes"
-              >
-                {isSaving ? (
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
-            </button>
-            )}
+            </div>
           </div>
-          
-          {/* Featured Photos Section */}
-          <div className="mt-6 bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden col-span-12"> {/* Changed background back to white, added shadow */} 
-            <FeaturedPhotos 
-              userId={profile.id} 
-              userFolderName={fullName.replace(/\s+/g, '_') || profile.id}
-              isOwnProfile={isOwnProfile}
-              onComplete={refetchProfile}
-            />
-          </div>
+        </div>
+
+        {/* Timeline Section */}
+        <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 h-[400px] flex items-center justify-center order-4 mt-6">
+          <p className="text-gray-500">Timeline Section (Coming Soon)</p>
         </div>
       </main>
 
@@ -1646,6 +1407,39 @@ function ProfileContent() {
         onChange={handleFileChange} 
         accept="image/*" 
         style={{ display: 'none' }}
+      />
+
+      {/* Profile Picture Lightbox */}
+      <Lightbox
+        open={isProfileLightboxOpen}
+        close={() => setIsProfileLightboxOpen(false)}
+        slides={profileSlide}
+        styles={{
+          root: { backgroundColor: "rgba(0, 0, 0, .9)" },
+          button: { filter: "none", color: "#fff" },
+          container: { padding: "20px" }
+        }}
+        animation={{ fade: 400 }}
+        carousel={{
+          finite: true,
+          preload: 1,
+          padding: "16px",
+          spacing: "16px"
+        }}
+        controller={{
+          closeOnBackdropClick: true,
+          closeOnPullDown: true,
+          closeOnPullUp: true
+        }}
+        render={{
+          buttonPrev: () => null,
+          buttonNext: () => null,
+          iconClose: () => (
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )
+        }}
       />
 
       <Footer />
