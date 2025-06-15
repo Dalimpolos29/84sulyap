@@ -7,8 +7,8 @@ import { useProfileContext, ProfileProvider } from '@/contexts/ProfileContext'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Camera } from 'lucide-react'
-import ImageCropper from '@/components/ImageCropper'
-import FeaturedPhotos from '@/components/FeaturedPhotos'
+import ImageCropper from '@/components/ui/ImageCropper'
+import FeaturedPhotos from '@/components/features/profile/FeaturedPhotos'
 import { FaIdCard, FaBriefcase, FaPhone, FaChildren, FaLocationDot, FaBuilding } from "react-icons/fa6";
 import { FaBirthdayCake } from "react-icons/fa";
 import { IoIosMail } from "react-icons/io";
