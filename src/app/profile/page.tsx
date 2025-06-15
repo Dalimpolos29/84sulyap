@@ -123,6 +123,7 @@ const getHobbyCategory = (hobby: string): string => {
 };
 
 // Add viewProfileId to the component props
+// Updated to support Next.js 15 routing mechanism
 interface ProfilePageProps {
   viewProfileId?: string;
 }
