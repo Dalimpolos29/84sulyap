@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { generateProfileSlug } from '@/utils/slugify'
 
 interface Member {
   id: string
@@ -84,11 +85,16 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
     fetchMembers()
   }, [searchQuery])
 
-  const handleCardClick = (memberId: string) => {
-    if (memberId === currentUserId) {
+  const handleCardClick = (member: Member) => {
+    if (member.id === currentUserId) {
       router.push('/profile') // Route to personal profile page
     } else {
-      router.push(`/members/profile/${memberId}`) // Route to member's profile page
+      // Generate slug from member's name
+      const slug = generateProfileSlug(
+        member.first_name || '', 
+        member.last_name || ''
+      )
+      router.push(`/members/profile/${slug}`) // Route to member's profile page
     }
   }
 
@@ -130,7 +136,7 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.1 }}
-          onClick={() => handleCardClick(member.id)}
+          onClick={() => handleCardClick(member)}
           className="cursor-pointer"
         >
           <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
