@@ -27,6 +27,10 @@ const nextConfig = {
             key: 'Cache-Control',
             value: 'no-store, max-age=0, must-revalidate',
           },
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
         ],
       },
     ]
