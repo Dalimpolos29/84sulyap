@@ -39,5 +39,5 @@ export default function MemberProfilePage() {
     return <LoginPage />
   }
 
-  return <ProfilePage params={{ id: params.id as string }} />
+  return <ProfilePage params={Promise.resolve({ id: params.id as string })} />
 } 

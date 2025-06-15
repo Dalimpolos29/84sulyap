@@ -125,12 +125,12 @@ const getHobbyCategory = (hobby: string): string => {
 // Add viewProfileId to the component props
 // Updated to support Next.js 15 routing mechanism
 interface ProfilePageProps {
-  params?: {
+  params?: Promise<{
     id?: string;
-  };
-  searchParams?: {
+  }>;
+  searchParams?: Promise<{
     [key: string]: string | string[] | undefined;
-  };
+  }>;
 }
 
 // Update the ProfileContent component to accept viewProfileId
@@ -1495,16 +1495,28 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 export default function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const [session, setSession] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [resolvedParams, setResolvedParams] = useState<{ id?: string } | null>(null)
   const supabase = createClient()
   
   useEffect(() => {
-    const getUser = async () => {
+    const initializeComponent = async () => {
+      try {
+        // Resolve params if they exist
+        const resolvedParamsData = params ? await params : null
+        setResolvedParams(resolvedParamsData)
+        
+        // Get user session
         const { data: { session } } = await supabase.auth.getSession()
         setSession(session)
+      } catch (error) {
+        console.error('Error initializing component:', error)
+      } finally {
         setIsLoading(false)
+      }
     }
-    getUser()
-  }, [])
+    
+    initializeComponent()
+  }, [params])
   
   if (isLoading) {
     return (
@@ -1520,7 +1532,7 @@ export default function ProfilePage({ params, searchParams }: ProfilePageProps) 
   
   return (
     <ProfileProvider user={session.user}>
-      <ProfileContent viewProfileId={params?.id} />
+      <ProfileContent viewProfileId={resolvedParams?.id} />
     </ProfileProvider>
   )
 }
