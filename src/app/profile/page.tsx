@@ -125,10 +125,6 @@ const getHobbyCategory = (hobby: string): string => {
 // Add viewProfileId to the component props
 interface ProfilePageProps {
   viewProfileId?: string;
-  params?: {
-    id?: string;
-  };
-  searchParams?: Record<string, string | string[] | undefined>;
 }
 
 // Update the ProfileContent component to accept viewProfileId
@@ -1490,13 +1486,10 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 }
 
 // Update the main ProfilePage component
-export default function ProfilePage(props: ProfilePageProps) {
+export default function ProfilePage({ viewProfileId }: ProfilePageProps) {
   const [session, setSession] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
-  
-  // Prioritize viewProfileId, fallback to params.id
-  const viewProfileId = props.viewProfileId || props.params?.id;
   
   useEffect(() => {
     const getUser = async () => {
@@ -1509,8 +1502,8 @@ export default function ProfilePage(props: ProfilePageProps) {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A335]"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     )
   }
@@ -1519,7 +1512,11 @@ export default function ProfilePage(props: ProfilePageProps) {
     return <LoginPage />
   }
   
-  return <ProfileContent viewProfileId={viewProfileId} />
+  return (
+    <ProfileProvider user={session.user}>
+      <ProfileContent viewProfileId={viewProfileId} />
+    </ProfileProvider>
+  )
 }
 
 {/* Add text-shadow utility class */}
