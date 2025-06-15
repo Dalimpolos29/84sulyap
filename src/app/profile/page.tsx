@@ -124,12 +124,11 @@ const getHobbyCategory = (hobby: string): string => {
 
 // Add viewProfileId to the component props
 interface ProfilePageProps {
+  viewProfileId?: string;
   params?: {
     id?: string;
   };
-  searchParams?: {
-    [key: string]: string | string[] | undefined;
-  };
+  searchParams?: Record<string, string | string[] | undefined>;
 }
 
 // Update the ProfileContent component to accept viewProfileId
@@ -252,12 +251,12 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   useEffect(() => {
     async function fetchViewedProfile() {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
         
         if (!viewProfileId) {
           // No viewProfileId means we're on our own profile page
           setIsViewMode(false)
-          setIsOwnProfile(true)
+        setIsOwnProfile(true)
           return
         }
 
@@ -1376,18 +1375,18 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
                           >
                             {hobby}
                             {isEditing && (
-                              <button
+            <button
                                 onClick={() => removeHobby(hobby)}
                                 className="ml-1 text-white/80 hover:text-white"
                                 type="button"
-                              >
+            >
                                 ×
-                              </button>
+            </button>
                             )}
                           </span>
                         );
                       })}
-                    </div>
+          </div>
 
                     {isEditing && (
                       <div className="relative w-48">
@@ -1414,12 +1413,12 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
                                 {hobby}
                               </button>
                             ))}
-                          </div>
+            </div>
                         )}
-                      </div>
+            </div>
                     )}
-                  </div>
-                </div>
+          </div>
+        </div>
               </div>
             </div>
           </div>
@@ -1490,25 +1489,28 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   )
 }
 
-// Update the default export
-export default function ProfilePage({ params, searchParams }: ProfilePageProps) {
+// Update the main ProfilePage component
+export default function ProfilePage(props: ProfilePageProps) {
   const [session, setSession] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
   
+  // Prioritize viewProfileId, fallback to params.id
+  const viewProfileId = props.viewProfileId || props.params?.id;
+  
   useEffect(() => {
     const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setIsLoading(false)
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
+        setIsLoading(false)
     }
     getUser()
   }, [])
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A335]"></div>
       </div>
     )
   }
@@ -1517,11 +1519,7 @@ export default function ProfilePage({ params, searchParams }: ProfilePageProps) 
     return <LoginPage />
   }
   
-  return (
-    <ProfileProvider user={session.user}>
-      <ProfileContent viewProfileId={params?.id} />
-    </ProfileProvider>
-  );
+  return <ProfileContent viewProfileId={viewProfileId} />
 }
 
 {/* Add text-shadow utility class */}
