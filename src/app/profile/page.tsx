@@ -125,7 +125,12 @@ const getHobbyCategory = (hobby: string): string => {
 // Add viewProfileId to the component props
 // Updated to support Next.js 15 routing mechanism
 interface ProfilePageProps {
-  viewProfileId?: string;
+  params?: {
+    id?: string;
+  };
+  searchParams?: {
+    [key: string]: string | string[] | undefined;
+  };
 }
 
 // Update the ProfileContent component to accept viewProfileId
@@ -1487,7 +1492,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 }
 
 // Update the main ProfilePage component
-export default function ProfilePage({ viewProfileId }: ProfilePageProps) {
+export default function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const [session, setSession] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
@@ -1515,7 +1520,7 @@ export default function ProfilePage({ viewProfileId }: ProfilePageProps) {
   
   return (
     <ProfileProvider user={session.user}>
-      <ProfileContent viewProfileId={viewProfileId} />
+      <ProfileContent viewProfileId={params?.id} />
     </ProfileProvider>
   )
 }
