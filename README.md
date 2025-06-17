@@ -2,6 +2,8 @@
 
 A modern web platform designed to reconnect UPIS (University of the Philippines Integrated School) Class of 1984 alumni, fostering community engagement and maintaining lifelong connections.
 
+🌐 **Live Application**: [https://sulyap84.vercel.app](https://sulyap84.vercel.app)
+
 ## ✨ Features
 
 - 🔐 **Secure Authentication** - Email-based authentication system
@@ -101,6 +103,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 
+## 🌐 Live Demo
+
+The application is live and accessible at: **[https://sulyap84.vercel.app](https://sulyap84.vercel.app)**
+
 ## 🚀 Deployment
 
 This project is configured for automatic deployment on Vercel:
@@ -115,6 +121,12 @@ This project is configured for automatic deployment on Vercel:
 npm run build
 npm run start
 ```
+
+### Environment Variables for Production
+
+Make sure to set these environment variables in your Vercel dashboard:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ## 🤝 Contributing
 
