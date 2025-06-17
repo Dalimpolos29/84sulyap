@@ -297,7 +297,7 @@ export default function VerifyEmail() {
           backgroundAttachment: "fixed",
         }}
       >
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#7D1A1D]"></div>
+        <div className="text-[#7D1A1D] text-sm">Loading...</div>
       </div>
     }>
       <VerificationContent />

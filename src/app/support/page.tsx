@@ -7,6 +7,7 @@ import LoginPage from '../(auth)/login/page'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { ProfileProvider } from '@/contexts/ProfileContext'
+import ProgressLoader from '@/components/ui/ProgressLoader'
 import { 
   Heart, 
   Coffee, 
@@ -283,9 +284,7 @@ export default function SupportPage() {
   }, [supabase.auth, router])
 
   if (loading) {
-    return <div className="min-h-screen bg-[#E5DFD0] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-600"></div>
-    </div>
+    return <ProgressLoader duration={1600} />
   }
 
   if (!session) {
