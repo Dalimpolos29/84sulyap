@@ -101,7 +101,7 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-600"></div>
+        <div className="text-emerald-600 text-sm">Loading members...</div>
       </div>
     )
   }

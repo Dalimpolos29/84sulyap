@@ -429,7 +429,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
           <h2 className="text-xl font-bold text-[#7D1A1D]">Featured Photos</h2>
         </div>
         <div className="p-6 flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#7D1A1D]"></div>
+          <div className="text-[#7D1A1D] text-sm">Loading photos...</div>
         </div>
       </div>
     )

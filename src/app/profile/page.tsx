@@ -723,11 +723,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   }] : [], [activeProfile?.profile_picture_url, fullName])
 
   if (contextLoading || (viewProfileId && !viewedProfile)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A335]"></div>
-      </div>
-    )
+    return null // Let the route-level loading.tsx handle the loading state
   }
   
   if (contextError || (viewProfileId && !viewedProfile)) {
@@ -1519,11 +1515,7 @@ export default function ProfilePage({ params, searchParams }: ProfilePageProps) 
   }, [params])
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    )
+    return null // Let the route-level loading.tsx handle the loading state
   }
   
   if (!session) {

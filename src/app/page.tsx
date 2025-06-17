@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { ProfileProvider, useProfileContext } from '@/contexts/ProfileContext'
 import Header from "@/components/layout/Header"
 import Footer from '@/components/layout/Footer'
+import ProgressLoader from '@/components/ui/ProgressLoader'
 
 // Dashboard content component that uses profile context
 function DashboardContent({ session }: { session: any }) {
@@ -21,11 +22,7 @@ function DashboardContent({ session }: { session: any }) {
 
   // Return a loading state while profile is being fetched
   if (profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    )
+    return null // Let the route-level loading.tsx handle the loading state
   }
 
   return (
@@ -147,11 +144,7 @@ export default function RootPage() {
   }, [signoutSuccess, router])
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    )
+    return null // Let the route-level loading.tsx handle the loading state
   }
 
   // If not authenticated, show login page
