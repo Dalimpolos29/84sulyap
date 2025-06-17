@@ -1,0 +1,34 @@
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.progressBar {
+  background: linear-gradient(90deg, 
+    #059669 0%, 
+    #10b981 25%, 
+    #34d399 50%, 
+    #10b981 75%, 
+    #059669 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 3px;
+  background: transparent;
+}
+
+.progressTrack {
+  height: 100%;
+  transition: width 0.1s ease-out;
+}

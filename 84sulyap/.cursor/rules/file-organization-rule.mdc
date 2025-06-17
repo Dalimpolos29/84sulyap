@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Guide for Cursor AI - File Organization Rules
+When creating new files, follow these guidelines:
+Components:
+UI Components: /src/components/ui/ - Generic, reusable UI elements (buttons, inputs, modals, etc.)
+Feature Components: /src/components/features/{feature-name}/ - Components specific to a feature
+Media Handling: /src/components/features/media/ - Components for image/video processing
+Icons: /src/components/icons/ - Icon components
+Hooks:
+Feature-specific hooks: /src/hooks/use{FeatureName}.ts
+Generic hooks: /src/hooks/use{Functionality}.ts
+Contexts:
+Place all context providers in /src/contexts/{ContextName}Context.tsx
+Utilities:
+API utilities: /src/utils/api/{endpoint}.ts
+Supabase utilities: /src/utils/supabase/{functionality}.ts
+Format/parsing: /src/utils/format.ts
+Validation: /src/utils/validation.ts
+Date handling: /src/utils/date.ts
+Pages:
+Follow Next.js App Router conventions
+Group related pages in folders with parentheses for route groups: /src/app/(feature)/
+Place complex page logic in separate components rather than in page files
+Tests:
+Place tests next to the files they test with .test.ts or .spec.ts suffix
+General Rules:
+Keep files under 300 lines when possible
+Break large components into smaller ones
+One component/hook/utility per file
+Use PascalCase for component files and camelCase for non-component files
