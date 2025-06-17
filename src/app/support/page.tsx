@@ -293,7 +293,7 @@ export default function SupportPage() {
   }
 
   return (
-    <ProfileProvider>
+    <ProfileProvider user={session?.user || null}>
       <SupportContent session={session} />
     </ProfileProvider>
   )
