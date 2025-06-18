@@ -17,14 +17,16 @@ interface Member {
   profession: string | null
   company: string | null
   profile_picture_url: string | null
+  created_at: string
 }
 
 interface MembersGridProps {
   searchQuery: string
   viewMode: 'grid' | 'list'
+  sortBy: 'name' | 'registration'
 }
 
-export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps) {
+export default function MembersGrid({ searchQuery, viewMode, sortBy }: MembersGridProps) {
   const [members, setMembers] = useState<Member[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -52,7 +54,7 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
 
         const { data, error: supabaseError } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, profession, company, profile_picture_url')
+          .select('id, first_name, last_name, profession, company, profile_picture_url, created_at')
 
         // Log the response
         console.log('Supabase response:', { data, error: supabaseError })
@@ -72,8 +74,20 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
           )
         }
 
-        // Sort the data
-        filteredData.sort((a, b) => ((a.last_name || '') + (a.first_name || '')).localeCompare((b.last_name || '') + (b.first_name || '')))
+        // Sort the data based on sortBy prop
+        if (sortBy === 'name') {
+          filteredData.sort((a, b) => {
+            const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim()
+            const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim()
+            return nameA.localeCompare(nameB)
+          })
+        } else if (sortBy === 'registration') {
+          filteredData.sort((a, b) => {
+            const dateA = new Date(a.created_at).getTime()
+            const dateB = new Date(b.created_at).getTime()
+            return dateB - dateA // Latest first
+          })
+        }
 
         setMembers(filteredData)
       } catch (err) {
@@ -85,7 +99,7 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
     }
 
     fetchMembers()
-  }, [searchQuery])
+  }, [searchQuery, sortBy])
 
   const getProfileLink = (member: Member) => {
     if (member.id === currentUserId) {
@@ -133,7 +147,8 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
     )
   }
 
-  return (
+  // Grid View Component
+  const GridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {members.map((member, index) => (
         <motion.div
@@ -148,31 +163,86 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
             prefetch={true}
           >
             <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-            <div className="flex p-4 gap-4">
-              <div className="relative w-20 h-20 flex-shrink-0">
-                <Image
-                  src={member.profile_picture_url || generateInitialsAvatar(member.first_name, member.last_name)}
-                  alt={`${member.first_name || ''} ${member.last_name || ''}`}
-                  fill
-                  className="rounded-lg object-cover"
-                  sizes="80px"
-                />
+              <div className="flex p-4 gap-4">
+                <div className="relative w-20 h-20 flex-shrink-0">
+                  <Image
+                    src={member.profile_picture_url || generateInitialsAvatar(member.first_name, member.last_name)}
+                    alt={`${member.first_name || ''} ${member.last_name || ''}`}
+                    fill
+                    className="rounded-lg object-cover"
+                    sizes="80px"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">
+                    {member.first_name || ''} {member.last_name || ''}
+                    {member.id === currentUserId && (
+                      <span className="ml-2 text-xs text-emerald-600">(You)</span>
+                    )}
+                  </h3>
+                  <p className="text-sm text-gray-600 truncate">{member.profession || 'No profession listed'}</p>
+                  <p className="text-sm text-gray-500 truncate">{member.company || 'No company listed'}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 truncate">
-                  {member.first_name || ''} {member.last_name || ''}
-                  {member.id === currentUserId && (
-                    <span className="ml-2 text-xs text-emerald-600">(You)</span>
-                  )}
-                </h3>
-                <p className="text-sm text-gray-600 truncate">{member.profession || 'No profession listed'}</p>
-                <p className="text-sm text-gray-500 truncate">{member.company || 'No company listed'}</p>
-              </div>
-            </div>
             </div>
           </Link>
         </motion.div>
       ))}
     </div>
   )
+
+  // List View Component
+  const ListView = () => (
+    <div className="space-y-4">
+      {members.map((member, index) => (
+        <motion.div
+          key={member.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
+        >
+          <Link 
+            href={getProfileLink(member)} 
+            className="block cursor-pointer"
+            prefetch={true}
+          >
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+              <div className="flex p-6 gap-6 items-center">
+                <div className="relative w-16 h-16 flex-shrink-0">
+                  <Image
+                    src={member.profile_picture_url || generateInitialsAvatar(member.first_name, member.last_name)}
+                    alt={`${member.first_name || ''} ${member.last_name || ''}`}
+                    fill
+                    className="rounded-full object-cover"
+                    sizes="64px"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-lg text-gray-900 truncate">
+                      {member.first_name || ''} {member.last_name || ''}
+                    </h3>
+                    {member.id === currentUserId && (
+                      <span className="px-2 py-1 text-xs bg-emerald-100 text-emerald-600 rounded-full">You</span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 truncate mb-1">{member.profession || 'No profession listed'}</p>
+                  <p className="text-gray-500 truncate">{member.company || 'No company listed'}</p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="w-6 h-6 text-gray-400">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+      ))}
+    </div>
+  )
+
+  return viewMode === 'grid' ? <GridView /> : <ListView />
 } 
