@@ -7,6 +7,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { generateProfileSlug } from '@/utils/slugify'
+import { generateInitialsAvatar } from '@/utils/avatarUtils'
+import ProgressLoader from '@/components/ui/ProgressLoader'
 
 interface Member {
   id: string
@@ -100,8 +102,11 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-emerald-600 text-sm">Loading members...</div>
+      <div className="relative">
+        <ProgressLoader duration={1500} />
+        <div className="flex justify-center items-center py-12">
+          <div className="text-emerald-600 text-sm">Loading members...</div>
+        </div>
       </div>
     )
   }
@@ -146,7 +151,7 @@ export default function MembersGrid({ searchQuery, viewMode }: MembersGridProps)
             <div className="flex p-4 gap-4">
               <div className="relative w-20 h-20 flex-shrink-0">
                 <Image
-                  src={member.profile_picture_url || '/default-avatar.png'}
+                  src={member.profile_picture_url || generateInitialsAvatar(member.first_name, member.last_name)}
                   alt={`${member.first_name || ''} ${member.last_name || ''}`}
                   fill
                   className="rounded-lg object-cover"

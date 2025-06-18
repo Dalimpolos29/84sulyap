@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Lora } from 'next/font/google'
 import "@/styles/globals.css";
+import LayoutProvider from '@/components/layout/LayoutProvider'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,7 +56,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} font-serif antialiased`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <LayoutProvider>
+          {children}
+        </LayoutProvider>
       </body>
     </html>
   );

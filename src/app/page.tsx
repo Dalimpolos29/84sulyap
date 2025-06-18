@@ -11,8 +11,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { ProfileProvider, useProfileContext } from '@/contexts/ProfileContext'
-import Header from "@/components/layout/Header"
-import Footer from '@/components/layout/Footer'
+
 import ProgressLoader from '@/components/ui/ProgressLoader'
 
 // Dashboard content component that uses profile context
@@ -26,20 +25,7 @@ function DashboardContent({ session }: { session: any }) {
   }
 
   return (
-    <div 
-      className="min-h-screen flex flex-col"
-      style={{
-        backgroundColor: "#E5DFD0",
-        backgroundImage:
-          "radial-gradient(#7D1A1D 0.5px, transparent 0.5px), radial-gradient(#C9A335 0.5px, #E5DFD0 0.5px)",
-        backgroundSize: "20px 20px",
-        backgroundPosition: "0 0, 10px 10px",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      <Header />
-
-      <main className="flex-1 flex items-start justify-center py-12 px-4 font-serif">
+    <div className="flex items-start justify-center py-12 px-4 font-serif">
         <div className="max-w-4xl w-full">
           <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
             <div className="bg-[#7D1A1D] text-white py-3 md:py-4 px-6 text-center">
@@ -103,9 +89,6 @@ function DashboardContent({ session }: { session: any }) {
             </div>
           </div>
         </div>
-      </main>
-
-      <Footer />
     </div>
   )
 }
@@ -152,12 +135,8 @@ export default function RootPage() {
     return <LoginPage />
   }
 
-  // Wrap dashboard content with ProfileProvider for access to user profile data
-  return (
-    <ProfileProvider user={session.user}>
-      <DashboardContent session={session} />
-    </ProfileProvider>
-  )
+  // ProfileProvider is now provided globally, so we can directly render the dashboard content
+  return <DashboardContent session={session} />
 }
 
 {/* Add text-shadow utility class */}

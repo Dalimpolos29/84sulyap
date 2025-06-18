@@ -37,7 +37,7 @@ export default function LoadingProvider({ children }: { children: React.ReactNod
 
   return (
     <LoadingContext.Provider value={{ isLoading, setLoading }}>
-      {isLoading && <ProgressLoader duration={2000} />}
+      {isLoading && <ProgressLoader duration={1500} />}
       {children}
     </LoadingContext.Provider>
   )

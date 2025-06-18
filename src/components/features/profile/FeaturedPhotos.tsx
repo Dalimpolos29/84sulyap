@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import Image from 'next/image'
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import ProgressLoader from '@/components/ui/ProgressLoader'
 
 // Define types
 type FeaturedPhoto = {
@@ -428,8 +429,11 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
         <div className="bg-transparent border-b border-gray-200 py-3 px-6">
           <h2 className="text-xl font-bold text-[#7D1A1D]">Featured Photos</h2>
         </div>
-        <div className="p-6 flex justify-center items-center h-64">
-          <div className="text-[#7D1A1D] text-sm">Loading photos...</div>
+        <div className="relative">
+          <ProgressLoader duration={1500} />
+          <div className="p-6 flex justify-center items-center h-64">
+            <div className="text-[#7D1A1D] text-sm">Loading photos...</div>
+          </div>
         </div>
       </div>
     )
