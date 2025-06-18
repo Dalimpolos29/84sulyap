@@ -7,6 +7,33 @@ import { Profile } from '@/hooks/useProfile'
 import { generateProfileSlug, parseProfileSlug } from './slugify'
 
 /**
+ * Fetches a profile by ID
+ * @param id - The profile ID
+ * @returns Profile data or null if not found
+ */
+export async function getProfileById(id: string): Promise<Profile | null> {
+  const supabase = createClient()
+  
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      console.error('Error fetching profile by ID:', error)
+      return null
+    }
+
+    return data as Profile
+  } catch (error) {
+    console.error('Error in getProfileById:', error)
+    return null
+  }
+}
+
+/**
  * Fetches a profile by slug (first_name_last_name format)
  * @param slug - The profile slug (e.g., "john_doe")
  * @returns Profile data or null if not found

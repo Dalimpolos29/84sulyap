@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import ProfilePage from '@/app/profile/page'
+import { ProfileContent } from '@/components/ProfileContent'
 import { getProfileBySlug } from '@/utils/profileQueries'
 import { Profile } from '@/hooks/useProfile'
 import Link from 'next/link'
@@ -57,6 +57,6 @@ export default function MemberProfilePage() {
     return null // Let the route-level loading.tsx handle the loading state
   }
 
-  // Pass the profile ID to the ProfilePage component
-  return <ProfilePage params={Promise.resolve({ id: profile.id })} />
+  // Pass the profile ID to the ProfileContent component
+  return <ProfileContent viewProfileId={profile.id} />
 } 
