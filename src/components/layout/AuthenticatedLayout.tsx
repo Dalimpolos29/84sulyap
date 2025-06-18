@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Header from './Header'
 import Footer from './Footer'
 
@@ -7,7 +8,7 @@ interface AuthenticatedLayoutProps {
   children: React.ReactNode
 }
 
-export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
+const AuthenticatedLayout = React.memo(function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   return (
     <div 
       className="min-h-screen flex flex-col"
@@ -29,4 +30,6 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       <Footer />
     </div>
   )
-}
+})
+
+export default AuthenticatedLayout

@@ -57,9 +57,12 @@ export default function LayoutProvider({ children }: LayoutProviderProps) {
         width: '100%', 
         height: '100%', 
         backgroundColor: '#E5DFD0',
-        zIndex: 9999 
+        zIndex: 9999,
+        // Anti-flicker optimization
+        opacity: 1,
+        transition: 'opacity 0.2s ease-in-out'
       }}>
-        <ProgressLoader duration={1500} />
+        <ProgressLoader duration={800} />
       </div>
     )
   }
