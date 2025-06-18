@@ -145,8 +145,8 @@ export function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   useEffect(() => {
     if (activeProfile) {
       // Convert string fields to arrays for UI
-      const childrenArray = activeProfile.children ? activeProfile.children.split(',').map(c => c.trim()).filter(c => c) : []
-      const hobbiesArray = activeProfile.hobbies_interests ? activeProfile.hobbies_interests.split(',').map(h => h.trim()).filter(h => h) : []
+      const childrenArray = (activeProfile.children && typeof activeProfile.children === 'string') ? activeProfile.children.split(',').map(c => c.trim()).filter(c => c) : []
+      const hobbiesArray = (activeProfile.hobbies_interests && typeof activeProfile.hobbies_interests === 'string') ? activeProfile.hobbies_interests.split(',').map(h => h.trim()).filter(h => h) : []
       
       setEditedProfile({
         first_name: activeProfile.first_name || '',
@@ -205,8 +205,8 @@ export function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
     setIsEditing(false)
     if (activeProfile) {
       // Convert string fields to arrays for UI
-      const childrenArray = activeProfile.children ? activeProfile.children.split(',').map(c => c.trim()).filter(c => c) : []
-      const hobbiesArray = activeProfile.hobbies_interests ? activeProfile.hobbies_interests.split(',').map(h => h.trim()).filter(h => h) : []
+      const childrenArray = (activeProfile.children && typeof activeProfile.children === 'string') ? activeProfile.children.split(',').map(c => c.trim()).filter(c => c) : []
+      const hobbiesArray = (activeProfile.hobbies_interests && typeof activeProfile.hobbies_interests === 'string') ? activeProfile.hobbies_interests.split(',').map(h => h.trim()).filter(h => h) : []
       
       setEditedProfile({
         first_name: activeProfile.first_name || '',
