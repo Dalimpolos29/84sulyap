@@ -291,6 +291,25 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   // Use either viewed profile or context profile
   const activeProfile = viewedProfile || contextProfile
   
+  // Calculate initials for the active profile (visited user or logged-in user)
+  const activeProfileInitials = useMemo(() => {
+    if (!activeProfile) return 'U'
+    
+    if (activeProfile.first_name && activeProfile.last_name) {
+      return `${activeProfile.first_name.charAt(0)}${activeProfile.last_name.charAt(0)}`.toUpperCase()
+    }
+    
+    if (activeProfile.first_name) {
+      return activeProfile.first_name.charAt(0).toUpperCase()
+    }
+    
+    if (activeProfile.last_name) {
+      return activeProfile.last_name.charAt(0).toUpperCase()
+    }
+    
+    return 'U'
+  }, [activeProfile])
+  
   // Modify existing useEffect for edit data
   useEffect(() => {
     if (activeProfile && !isViewMode) {
@@ -799,7 +818,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
                   
                   {/* Initials with shadow on top */}
                   <div className="absolute inset-[22px] rounded-full overflow-hidden z-10 shadow-[0_8px_24px_rgba(0,0,0,0.7)] bg-gray-200 flex items-center justify-center">
-                    <span className="text-7xl font-bold text-[#7D1A1D]">{initials}</span>
+                    <span className="text-7xl font-bold text-[#7D1A1D]">{activeProfileInitials}</span>
           </div>
           
                   {/* Camera icon positioned to always be at the same position relative to the circle border */}
