@@ -3,9 +3,103 @@
 > next dev
 
    ▲ Next.js 15.2.4
-   - Local:        http://localhost:3000
-   - Network:      http://10.2.49.142:3000
+   - Local:        http://localhost:12001
+   - Network:      http://10.2.49.142:12001
    - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 1816ms
+ ✓ Ready in 1493ms
+ ○ Compiling /support ...
+ ✓ Compiled /support in 6s (1137 modules)
+ GET /support 200 in 7264ms
+ ✓ Compiled in 943ms (494 modules)
+ ⚠ Cross origin request detected from work-2-tehwzsdvatrjkaza.prod-runtime.all-hands.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 784ms (172 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 532ms (1092 modules)
+ GET /login 200 in 961ms
+ ○ Compiling / ...
+ ✓ Compiled / in 638ms (1099 modules)
+ GET / 200 in 1012ms
+ GET / 200 in 38ms
+ ✓ Compiled in 320ms (497 modules)
+ GET /login 200 in 32ms
+ ✓ Compiled in 244ms (497 modules)
+ GET /login 200 in 25ms
+ ✓ Compiled in 197ms (497 modules)
+ GET /login 200 in 21ms
+ ✓ Compiled in 472ms (1106 modules)
+ GET /login 200 in 78ms
+ ✓ Compiled in 187ms (495 modules)
+ GET /login 200 in 28ms
+ ✓ Compiled in 203ms (495 modules)
+ GET /login 200 in 23ms
+ ✓ Compiled in 288ms (1080 modules)
+ GET /login 200 in 53ms
+ ✓ Compiled in 258ms (484 modules)
+ GET /login 200 in 24ms
+ ✓ Compiled in 243ms (484 modules)
+ GET /login 200 in 45ms
+ ✓ Compiled in 205ms (484 modules)
+ GET /login 200 in 24ms
+ ✓ Compiled in 189ms (484 modules)
+ GET /login 200 in 21ms
+ ✓ Compiled in 1476ms (1086 modules)
+ GET /login 200 in 91ms
+ ✓ Compiled in 363ms (1086 modules)
+ GET /login 200 in 85ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /login 200 in 279ms
+ ✓ Compiled in 567ms (1086 modules)
+ GET /login 200 in 233ms
+ ✓ Compiled in 205ms (486 modules)
+ GET /login 200 in 20ms
+ ✓ Compiled in 360ms (1086 modules)
+ GET /login 200 in 124ms
+ ⨯ ./src/components/layout/Header.tsx
+Error:   [31mx[0m Unexpected token `div`. Expected jsx identifier
+    ,-[[36;1;4m/workspace/84sulyap/src/components/layout/Header.tsx[0m:41:1]
+ [2m38[0m |   }
+ [2m39[0m | 
+ [2m40[0m |   return (
+ [2m41[0m |     <div className="sticky top-0 z-50">
+    : [35;1m     ^^^[0m
+ [2m42[0m |       <header className="bg-[#7D1A1D] text-white py-3 shadow-md">
+ [2m43[0m |         <div className="w-full max-w-[1400px] mx-auto flex justify-between items-center px-4 sm:px-6 md:px-8">
+ [2m44[0m |           
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/layout/Header.tsx
+./src/components/layout/AppShell.tsx
+ ✓ Compiled in 379ms (1086 modules)
+ GET /login 200 in 62ms
+ ✓ Compiled in 283ms (486 modules)
+ GET /login 200 in 26ms
+ ✓ Compiled in 281ms (486 modules)
+ GET /login 200 in 24ms
+ ✓ Compiled in 318ms (486 modules)
+ GET /login 200 in 29ms
+ ✓ Compiled in 200ms (486 modules)
+ GET /login 200 in 23ms
+ ✓ Compiled in 215ms (486 modules)
+ GET /login 200 in 57ms
+ ✓ Compiled in 279ms (486 modules)
+ GET /login 200 in 25ms
+ ✓ Compiled in 237ms (486 modules)
+ GET /login 200 in 34ms
+ ✓ Compiled in 215ms (486 modules)
+ GET /login 200 in 29ms
+ ✓ Compiled in 275ms (486 modules)
+ GET /login 200 in 23ms
+ ✓ Compiled in 303ms (486 modules)
+ GET /login 200 in 29ms
+ ✓ Compiled in 344ms (486 modules)
+ GET /login 200 in 32ms
+ ✓ Compiled in 217ms (486 modules)
+ GET /login 200 in 28ms

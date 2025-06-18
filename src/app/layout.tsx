@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Lora } from 'next/font/google'
 import "@/styles/globals.css";
+import { AuthProvider, AuthGuard } from '@/providers/AuthProvider'
+import AppShell from '@/components/layout/AppShell'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,7 +57,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} font-serif antialiased`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <AuthProvider>
+          <AuthGuard>
+            <AppShell>
+              {children}
+            </AppShell>
+          </AuthGuard>
+        </AuthProvider>
       </body>
     </html>
   );

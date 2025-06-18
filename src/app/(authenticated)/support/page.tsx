@@ -1,13 +1,5 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import LoginPage from '../(auth)/login/page'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
-import { ProfileProvider } from '@/contexts/ProfileContext'
-import ProgressLoader from '@/components/ui/ProgressLoader'
 import { 
   Heart, 
   Coffee, 
@@ -21,18 +13,14 @@ import {
   Sparkles
 } from 'lucide-react'
 
-function SupportContent({ session }: { session: any }) {
+export default function SupportPage() {
   return (
     <div 
-      className="min-h-screen flex flex-col"
+      className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8"
       style={{
-        backgroundColor: "#E5DFD0",
         color: "#333333"
       }}
     >
-      <Header />
-      
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">
@@ -239,61 +227,6 @@ function SupportContent({ session }: { session: any }) {
             — Dennis Alimpolos, Developer & UPIS '84 Alumni
           </p>
         </div>
-      </main>
-
-      <Footer />
-    </div>
-  )
-}
-
-export default function SupportPage() {
-  const [session, setSession] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const supabase = createClient()
-
-  useEffect(() => {
-    const getSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('Session error:', error)
-          setSession(null)
-        } else {
-          setSession(session)
-        }
-      } catch (error) {
-        console.error('Unexpected error:', error)
-        setSession(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    getSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session)
-        setLoading(false)
-      }
+      </div>
     )
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth, router])
-
-  if (loading) {
-    return <ProgressLoader duration={1600} />
   }
-
-  if (!session) {
-    return <LoginPage />
-  }
-
-  return (
-    <ProfileProvider user={session?.user || null}>
-      <SupportContent session={session} />
-    </ProfileProvider>
-  )
-}

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useProfileContext } from '@/contexts/ProfileContext'
 import { createClient } from '@/utils/supabase/client'
-import { useProfileContext, ProfileProvider } from '@/contexts/ProfileContext'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Camera } from 'lucide-react'
@@ -15,10 +15,8 @@ import { IoIosMail } from "react-icons/io";
 import { GiBigDiamondRing } from "react-icons/gi";
 import AddressInput from '@/components/ui/AddressInput'
 import { useProfile, Profile } from '@/hooks/useProfile'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
+
 import Lightbox from "yet-another-react-lightbox"
-import LoginPage from '@/app/(auth)/login/page'
 
 // Function to format date strings for display
 const formatDate = (dateString: string | null | undefined): string => {
@@ -743,20 +741,8 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   }
   
   return (
-    <div 
-      className="min-h-screen flex flex-col text-[#7D1A1D]"
-      style={{
-        backgroundColor: "#E5DFD0",
-        backgroundImage:
-          "radial-gradient(#7D1A1D 0.5px, transparent 0.5px), radial-gradient(#C9A335 0.5px, #E5DFD0 0.5px)",
-        backgroundSize: "20px 20px",
-        backgroundPosition: "0 0, 10px 10px",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      <Header />
-      
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
+    <div className="text-[#7D1A1D]">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Profile</h1>
@@ -1481,18 +1467,14 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
           )
         }}
       />
-
-      <Footer />
+      </div>
     </div>
   )
 }
 
-// Update the main ProfilePage component
 export default function ProfilePage({ params, searchParams }: ProfilePageProps) {
-  const [session, setSession] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [resolvedParams, setResolvedParams] = useState<{ id?: string } | null>(null)
-  const supabase = createClient()
+  const [isLoading, setIsLoading] = useState(true)
   
   useEffect(() => {
     const initializeComponent = async () => {
@@ -1500,10 +1482,6 @@ export default function ProfilePage({ params, searchParams }: ProfilePageProps) 
         // Resolve params if they exist
         const resolvedParamsData = params ? await params : null
         setResolvedParams(resolvedParamsData)
-        
-        // Get user session
-        const { data: { session } } = await supabase.auth.getSession()
-        setSession(session)
       } catch (error) {
         console.error('Error initializing component:', error)
       } finally {
@@ -1518,15 +1496,7 @@ export default function ProfilePage({ params, searchParams }: ProfilePageProps) 
     return null // Let the route-level loading.tsx handle the loading state
   }
   
-  if (!session) {
-    return <LoginPage />
-  }
-  
-  return (
-    <ProfileProvider user={session.user}>
-      <ProfileContent viewProfileId={resolvedParams?.id} />
-    </ProfileProvider>
-  )
+  return <ProfileContent viewProfileId={resolvedParams?.id} />
 }
 
 {/* Add text-shadow utility class */}

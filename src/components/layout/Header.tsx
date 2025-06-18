@@ -5,20 +5,18 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useProfileContext } from '@/contexts/ProfileContext'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/providers/AuthProvider'
 import Navigation from './Navigation'
 
 export default function Header() {
   const pathname = usePathname()
   const { profile, loading: profileLoading, fullName, initials } = useProfileContext()
-  const router = useRouter()
-  const supabase = createClient()
+  const { user, signOut } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Determine if the user is authenticated based on profile data
-  const isAuthenticated = !!profile && !profileLoading
+  // Determine if the user is authenticated based on auth context
+  const isAuthenticated = !!user && !!profile && !profileLoading
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,9 +33,8 @@ export default function Header() {
   }, [])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login') // Redirect to login after sign out
-    router.refresh()
+    await signOut()
+    setDropdownOpen(false)
   }
 
   return (
@@ -122,18 +119,16 @@ export default function Header() {
                       {fullName}
                     </div>
                     <div className="pt-2">
-                      <button 
-                        onClick={() => {
-                          router.push('/profile')
-                          setDropdownOpen(false)
-                        }} 
+                      <Link 
+                        href="/profile"
+                        onClick={() => setDropdownOpen(false)} 
                         className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                           <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                         My Profile
-                      </button>
+                      </Link>
                       <button className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="3"></circle>
