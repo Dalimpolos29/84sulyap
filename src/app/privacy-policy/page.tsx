@@ -5,6 +5,7 @@ import Image from "next/image"
 
 export default function PrivacyPolicy() {
   return (
+    <>
       {/* Main Content */}
       <main className="flex-1 py-12 px-4 sm:px-6 md:px-8 font-serif">
         <div className="max-w-3xl mx-auto bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
@@ -90,5 +91,6 @@ export default function PrivacyPolicy() {
           </div>
         </div>
       </main>
+    </>
   )
 } 
