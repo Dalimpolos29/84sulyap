@@ -244,21 +244,27 @@ src/app/layout.tsx (Root Layout)
 - **Changes**: Removed auth logic, uses Link components
 - **Status**: ✅ **COMPLETE & FUNCTIONAL**
 
-### 🚧 **PARTIALLY COMPLETE:**
+### ✅ **COMPLETED:**
 
-#### 7. **Support Page** 🚧 **INCOMPLETE**
+#### 7. **Support Page** ✅ **COMPLETE**
 - **File**: `src/app/(authenticated)/support/page.tsx`
-- **Status**: Started simplification but NOT FINISHED
-- **Issue**: Still has old authentication wrapper code at bottom
-- **Next**: Remove remaining auth logic, simplify to content only
+- **Status**: ✅ **ALREADY CLEAN** - No auth logic found, properly simplified
 
-### ❌ **NOT STARTED:**
+#### 8. **Member Profile Page** ✅ **COMPLETE**
+- **File**: `src/app/(authenticated)/members/profile/[slug]/page.tsx`
+- **Status**: ✅ **CLEANED UP** - Removed authentication logic, LoginPage import, simplified layout
 
-#### 8. **Other Pages Need Simplification**
-- `src/app/(authenticated)/members/page.tsx` - Needs auth logic removed
-- `src/app/(authenticated)/profile/page.tsx` - Needs auth logic removed  
-- Member profile pages - Need auth logic removed
-- Other authenticated pages - Need review and simplification
+#### 9. **Terms of Use Page** ✅ **COMPLETE**
+- **File**: `src/app/(authenticated)/terms-of-use/page.tsx`
+- **Status**: ✅ **CLEANED UP** - Removed Header/Footer imports, simplified layout
+
+#### 10. **Privacy Policy Page** ✅ **COMPLETE**
+- **File**: `src/app/(authenticated)/privacy-policy/page.tsx`
+- **Status**: ✅ **CLEANED UP** - Removed Header/Footer imports, simplified layout
+
+#### 11. **Members Directory Page** ✅ **COMPLETE**
+- **File**: `src/app/(authenticated)/members/page.tsx`
+- **Status**: ✅ **ALREADY CLEAN** - No auth logic found, properly simplified
 
 ### 🔧 **CURRENT ARCHITECTURE STATUS:**
 
@@ -268,38 +274,43 @@ src/app/layout.tsx (Root Layout)
 - AppShell provides consistent layout
 - Main dashboard page works correctly
 - Header dropdown and sign-out functional
+- All authenticated pages cleaned up and simplified
+- No more duplicate authentication logic
+- No more Header/Footer imports in individual pages
 
-#### 🚧 **NEEDS COMPLETION:**
-- Support page cleanup (remove old auth code)
-- Other page simplifications
-- Testing all navigation flows
-- Verify no authentication issues
+#### 🚧 **REMAINING TASKS:**
 
-### 📋 **IMMEDIATE NEXT STEPS FOR CONTINUATION:**
+1. **Environment Setup for Testing**:
+   - Need Supabase environment variables to run development server
+   - Server starts but requires NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-1. **Complete Support Page Cleanup**:
-   ```bash
-   # Remove lines 247-299 in src/app/(authenticated)/support/page.tsx
-   # Keep only the simplified content component
-   ```
-
-2. **Simplify Remaining Pages**:
-   - Remove authentication logic from all pages in `(authenticated)` folder
-   - Remove Header/Footer imports (handled by AppShell)
-   - Remove ProfileProvider wrappers (handled by AppShell)
-
-3. **Test Navigation**:
-   - Verify no page flickering
+2. **Final Testing**:
+   - Test navigation experience (no flickering)
    - Test all page transitions
    - Verify authentication flows work
    - Test sign-out functionality
 
-4. **Start Development Server**:
+### 📋 **IMMEDIATE NEXT STEPS FOR CONTINUATION:**
+
+1. **Set up Environment Variables**:
+   ```bash
+   # Create .env.local with Supabase credentials
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+2. **Start Development Server**:
    ```bash
    cd /workspace/84sulyap
-   npm run dev
-   # Test on port 12001
+   npm run dev -- --port 12001 --hostname 0.0.0.0
+   # Test on https://work-2-piaexrhbyispueyf.prod-runtime.all-hands.dev
    ```
+
+3. **Test Navigation Experience**:
+   - Navigate between pages (/, /members, /support, /terms-of-use, /privacy-policy)
+   - Verify no page flickering
+   - Confirm header/nav stay persistent
+   - Test member profile pages
 
 ### 🎯 **EXPECTED RESULTS AFTER COMPLETION:**
 - ✅ No page flickering during navigation
@@ -315,4 +326,4 @@ src/app/layout.tsx (Root Layout)
 - No new dependencies required
 - Security maintained through centralized auth
 
-**Current Status**: ~70% complete. Core architecture working, needs page cleanup completion.
+**Current Status**: ~90% complete. Core architecture working, all pages cleaned up, needs environment setup for final testing.
