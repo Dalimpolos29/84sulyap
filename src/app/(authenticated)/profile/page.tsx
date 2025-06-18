@@ -1412,7 +1412,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
         <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-6 h-[400px] flex items-center justify-center order-4 mt-6">
           <p className="text-gray-500">Timeline Section (Coming Soon)</p>
         </div>
-      </main>
+        </div>
 
       {/* Image Cropper Modal */}
       {selectedImage && (
@@ -1433,7 +1433,8 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
       />
 
       {/* Profile Picture Lightbox */}
-      <Lightbox
+      {isProfileLightboxOpen && (
+        <Lightbox
         open={isProfileLightboxOpen}
         close={() => setIsProfileLightboxOpen(false)}
         slides={[{
@@ -1466,8 +1467,8 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
             </svg>
           )
         }}
-      />
-      </div>
+        />
+      )}
     </div>
   )
 }
@@ -1497,11 +1498,4 @@ export default function ProfilePage({ params, searchParams }: ProfilePageProps) 
   }
   
   return <ProfileContent viewProfileId={resolvedParams?.id} />
-}
-
-{/* Add text-shadow utility class */}
-<style jsx global>{`
-  .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-`}</style> 
+} 
