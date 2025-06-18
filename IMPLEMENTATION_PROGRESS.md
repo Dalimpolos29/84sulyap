@@ -10,7 +10,7 @@
 ## Environment Setup
 - **Repository**: https://github.com/Dalimpolos29/84sulyap.git
 - **Branch**: fix/duplicate_loader
-- **GitHub Token**: [Provided by user - use GITHUB_TOKEN environment variable]
+- **GitHub Token**: [Provided by user - use GITHUB_TOKEN environment variable given by the user]
 - **Development Server**: Port 12000
 - **Live URL**: https://work-1-adtjqfcnglntqyox.prod-runtime.all-hands.dev
 
