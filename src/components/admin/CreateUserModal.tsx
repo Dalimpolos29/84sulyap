@@ -69,13 +69,13 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
     setSuccess('')
 
     // Validate required fields
-    if (!firstName || !lastName) {
-      setError('First name and last name are required')
+    if (!firstName || !lastName || !email) {
+      setError('First name, last name, and email are required')
       return
     }
 
-    // Email is optional but validate format if provided
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address')
       return
     }
@@ -95,26 +95,24 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         throw new Error(`Username "${username}" already exists. Please use a different name.`)
       }
 
-      // Create auth user (use dummy email if none provided)
-      const authEmail = email || `${username}@84sulyap.local`
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: authEmail,
-        password: 'upis1984',
-        options: {
-          emailRedirectTo: `${window.location.origin}/login`,
-          data: {
-            first_name: firstName,
-            last_name: lastName
-          }
-        }
+      // Create auth user via server action (auto-confirmed)
+      const response = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password: 'upis1984',
+          firstName,
+          lastName
+        })
       })
 
-      if (authError) throw authError
-      const authUserId = authData.user?.id
+      const { data: authData, error: authError } = await response.json()
 
-      if (!authUserId) {
-        throw new Error('Failed to create auth user')
-      }
+      if (authError) throw new Error(authError)
+      if (!authData?.userId) throw new Error('Failed to create auth user')
+
+      const authUserId = authData.userId
 
       // Create profile entry using RPC (bypasses RLS)
       const { data: newUserId, error: profileError } = await supabase
@@ -318,6 +316,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
                   "block w-full px-3 py-2 text-black bg-white border rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all",
                   emailFocused || email ? "border-[#7D1A1D]" : "border-gray-300"
                 )}
+                required
               />
               <label
                 htmlFor="email"
@@ -328,7 +327,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
                     : "top-2.5"
                 )}
               >
-                Email (optional)
+                Email *
               </label>
             </div>
 
