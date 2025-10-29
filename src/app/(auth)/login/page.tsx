@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import { useRouter } from "next/navigation"
+import ChangePasswordDialog from "@/components/auth/ChangePasswordDialog"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -37,6 +38,10 @@ export default function LoginPage() {
 
   // Password visibility
   const [showPassword, setShowPassword] = useState(false)
+
+  // Password change dialog state
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [userId, setUserId] = useState("")
 
   const supabase = createClient()
 
@@ -125,6 +130,15 @@ export default function LoginPage() {
       const elapsedTime = Date.now() - startTime
       if (elapsedTime < minimumLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsedTime))
+      }
+
+      // Check if password change is required
+      if (userData.must_change_password) {
+        console.log('Password change required')
+        setUserId(userData.user_id)
+        setShowPasswordDialog(true)
+        setLoading(false)
+        return
       }
 
       // Enhanced navigation with retry logic
@@ -494,6 +508,17 @@ export default function LoginPage() {
           }
         `}</style>
       </div>
+
+      {/* Password Change Dialog */}
+      {showPasswordDialog && (
+        <ChangePasswordDialog
+          userId={userId}
+          onSuccess={() => {
+            setShowPasswordDialog(false)
+            setLoginSuccess(true)
+          }}
+        />
+      )}
     </div>
   )
 }
