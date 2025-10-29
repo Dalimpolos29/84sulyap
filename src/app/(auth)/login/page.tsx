@@ -77,36 +77,38 @@ export default function LoginPage() {
     setLoginSuccess(false)
 
     try {
-      // Step 1: Look up username to get email
+      // Step 1: Look up username to get email using RPC function (bypasses RLS)
       console.log('Looking up username:', username.toLowerCase().trim())
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email, account_status')
-        .eq('username', username.toLowerCase().trim())
-        .single()
+        .rpc('lookup_email_by_username', {
+          username_input: username.toLowerCase().trim()
+        })
 
       console.log('Profile lookup result:', { profileData, profileError })
 
-      if (profileError || !profileData) {
+      // RPC returns an array, get first result
+      const userData = profileData && profileData.length > 0 ? profileData[0] : null
+
+      if (profileError || !userData) {
         console.error('Profile lookup failed:', profileError)
         throw new Error("Invalid username or password")
       }
 
-      console.log('Found email:', profileData.email, 'Status:', profileData.account_status)
+      console.log('Found email:', userData.email, 'Status:', userData.account_status)
 
       // Check account status
-      if (profileData.account_status === 'Inactive') {
+      if (userData.account_status === 'Inactive') {
         throw new Error("Your account has been deactivated. Please contact an administrator.")
       }
 
-      if (profileData.account_status === 'Deceased') {
+      if (userData.account_status === 'Deceased') {
         throw new Error("This account is marked as deceased and cannot be accessed.")
       }
 
       // Step 2: Use email to authenticate with Supabase
-      console.log('Attempting auth with email:', profileData.email)
+      console.log('Attempting auth with email:', userData.email)
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email: profileData.email,
+        email: userData.email,
         password,
       })
 
