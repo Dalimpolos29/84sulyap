@@ -95,23 +95,25 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         throw new Error(`Username "${username}" already exists. Please use a different name.`)
       }
 
-      // If email provided, create auth user
-      let authUserId = null
-      if (email) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password: 'upis1984',
-          options: {
-            emailRedirectTo: `${window.location.origin}/login`,
-            data: {
-              first_name: firstName,
-              last_name: lastName
-            }
+      // Create auth user (use dummy email if none provided)
+      const authEmail = email || `${username}@84sulyap.local`
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: authEmail,
+        password: 'upis1984',
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+          data: {
+            first_name: firstName,
+            last_name: lastName
           }
-        })
+        }
+      })
 
-        if (authError) throw authError
-        authUserId = authData.user?.id
+      if (authError) throw authError
+      const authUserId = authData.user?.id
+
+      if (!authUserId) {
+        throw new Error('Failed to create auth user')
       }
 
       // Create profile entry using RPC (bypasses RLS)
