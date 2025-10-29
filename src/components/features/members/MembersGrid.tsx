@@ -66,9 +66,16 @@ export default function MembersGrid({ searchQuery, viewMode, sortBy }: MembersGr
 
         // Filter the data on the client side for now
         let filteredData = data || []
+
+        // Exclude current user from the list
+        if (currentUserId) {
+          filteredData = filteredData.filter(member => member.id !== currentUserId)
+        }
+
+        // Apply search filter
         if (searchQuery) {
           const searchLower = searchQuery.toLowerCase()
-          filteredData = filteredData.filter(member => 
+          filteredData = filteredData.filter(member =>
             member.first_name?.toLowerCase().includes(searchLower) ||
             member.last_name?.toLowerCase().includes(searchLower)
           )
@@ -99,7 +106,7 @@ export default function MembersGrid({ searchQuery, viewMode, sortBy }: MembersGr
     }
 
     fetchMembers()
-  }, [searchQuery, sortBy])
+  }, [searchQuery, sortBy, currentUserId])
 
   const getProfileLink = (member: Member) => {
     if (member.id === currentUserId) {

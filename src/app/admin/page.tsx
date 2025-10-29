@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useProfileContext } from '@/contexts/ProfileContext'
 import { Loader2, Users, UserPlus, Shield } from 'lucide-react'
+import CreateUserModal from '@/components/admin/CreateUserModal'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -16,6 +17,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   const supabase = createClient()
 
@@ -85,7 +87,7 @@ export default function AdminPage() {
             </div>
           </div>
           <button
-            onClick={() => {/* TODO: Open create user modal */}}
+            onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-2 bg-[#7D1A1D] text-white px-4 py-2 rounded hover:bg-[#6a1518] transition-colors"
           >
             <UserPlus className="h-5 w-5" />
@@ -237,6 +239,15 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Create User Modal */}
+      <CreateUserModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          loadUsers() // Reload user list
+        }}
+      />
     </div>
   )
 }
