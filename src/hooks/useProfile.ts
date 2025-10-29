@@ -7,6 +7,7 @@ import { User } from '@supabase/supabase-js'
 // Define types for profile data
 export type Profile = {
   id: string
+  username: string | null
   first_name: string | null
   middle_name: string | null
   last_name: string | null
@@ -33,7 +34,10 @@ export type Profile = {
     spouse: boolean
     children: boolean
   } | null
-  // Add other profile fields as needed
+  role: string | null
+  account_status: string | null
+  must_change_password: boolean | null
+  created_at: string | null
 }
 
 // Hook return type
