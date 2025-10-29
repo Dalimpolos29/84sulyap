@@ -85,14 +85,13 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
     try {
       const username = generateUsername(firstName, middleName, lastName)
 
-      // Check if username already exists
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username)
-        .single()
+      // Check if username already exists using RPC
+      const { data: usernameExists, error: checkError } = await supabase
+        .rpc('check_username_exists', { username_to_check: username })
 
-      if (existingUser) {
+      if (checkError) throw checkError
+
+      if (usernameExists) {
         throw new Error(`Username "${username}" already exists. Please use a different name.`)
       }
 
@@ -115,20 +114,19 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         authUserId = authData.user?.id
       }
 
-      // Create profile entry
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authUserId,
-          username,
-          first_name: firstName,
-          middle_name: middleName || null,
-          last_name: lastName,
-          suffix: suffix || null,
-          email: email || null,
-          role,
-          account_status: 'Active',
-          must_change_password: true
+      // Create profile entry using RPC (bypasses RLS)
+      const { data: newUserId, error: profileError } = await supabase
+        .rpc('create_user_profile', {
+          p_id: authUserId,
+          p_username: username,
+          p_first_name: firstName,
+          p_middle_name: middleName || null,
+          p_last_name: lastName,
+          p_suffix: suffix || null,
+          p_email: email || null,
+          p_role: role,
+          p_account_status: 'Active',
+          p_must_change_password: true
         })
 
       if (profileError) throw profileError
