@@ -69,12 +69,12 @@ export default function AdminPage() {
   })
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded shadow-sm p-4 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8 text-[#7D1A1D]" />
+            <Shield className="h-7 w-7 text-[#7D1A1D]" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
                 Admin Panel
@@ -86,7 +86,7 @@ export default function AdminPage() {
           </div>
           <button
             onClick={() => {/* TODO: Open create user modal */}}
-            className="flex items-center gap-2 bg-[#7D1A1D] text-white px-4 py-2 rounded-md hover:bg-[#6a1518] transition-colors"
+            className="flex items-center gap-2 bg-[#7D1A1D] text-white px-4 py-2 rounded hover:bg-[#6a1518] transition-colors"
           >
             <UserPlus className="h-5 w-5" />
             <span className="hidden sm:inline">Add User</span>
@@ -95,8 +95,8 @@ export default function AdminPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <div className="bg-white rounded shadow-sm p-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-serif">Total Members</p>
@@ -104,11 +104,11 @@ export default function AdminPage() {
                 {users.filter(u => u.role === 'Alumni').length}
               </p>
             </div>
-            <Users className="h-8 w-8 text-gray-400" />
+            <Users className="h-7 w-7 text-gray-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="bg-white rounded shadow-sm p-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-serif">Officers</p>
@@ -116,11 +116,11 @@ export default function AdminPage() {
                 {users.filter(u => u.role === 'Officer').length}
               </p>
             </div>
-            <Shield className="h-8 w-8 text-gray-400" />
+            <Shield className="h-7 w-7 text-gray-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="bg-white rounded shadow-sm p-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-serif">Active</p>
@@ -132,7 +132,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="bg-white rounded shadow-sm p-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-serif">Inactive</p>
@@ -146,18 +146,18 @@ export default function AdminPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div className="bg-white rounded shadow-sm p-3 mb-4">
         <input
           type="text"
           placeholder="Search by name, username, or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7D1A1D] font-serif"
+          className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#7D1A1D] font-serif"
         />
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white rounded shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center p-12">
             <Loader2 className="h-8 w-8 animate-spin text-[#7D1A1D]" />

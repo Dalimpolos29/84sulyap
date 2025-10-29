@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useProfileContext } from '@/contexts/ProfileContext'
-import { 
+import {
   Home,
   Users,
   Image as ImageIcon,
@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   Calendar,
-  Heart
+  Heart,
+  Shield
 } from 'lucide-react'
 
 export default function Navigation() {
@@ -25,12 +26,15 @@ export default function Navigation() {
   // Determine if the user is authenticated based on profile data
   const isAuthenticated = !!profile && !profileLoading
 
+  // Check if user is admin (Officer or Super Admin)
+  const isAdmin = profile?.role === 'Officer' || profile?.role === 'Super Admin'
+
   // Close mobile menu when path changes
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [pathname])
 
-  const navItems = [
+  const baseNavItems = [
     {
       name: 'Home',
       href: '/',
@@ -38,7 +42,7 @@ export default function Navigation() {
       current: pathname === '/'
     },
     {
-      name: 'Members Directory',
+      name: 'Members',
       href: '/members',
       icon: Users,
       current: pathname === '/members'
@@ -81,6 +85,19 @@ export default function Navigation() {
       current: pathname === '/support'
     }
   ]
+
+  // Add Admin link if user is Officer or Super Admin
+  const navItems = isAdmin
+    ? [
+        ...baseNavItems,
+        {
+          name: 'Admin',
+          href: '/admin',
+          icon: Shield,
+          current: pathname === '/admin'
+        }
+      ]
+    : baseNavItems
 
   if (!isAuthenticated) return null
 

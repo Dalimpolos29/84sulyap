@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import StatsCard from '@/components/features/members/StatsCard'
 import MembersSearch from '@/components/features/members/MembersSearch'
 import MembersGrid from '@/components/features/members/MembersGrid'
 
@@ -24,7 +23,6 @@ export default function MembersDirectory() {
 
   return (
     <div>
-      <StatsCard />
       <MembersSearch onSearch={handleSearch} onViewChange={handleViewChange} onSortChange={handleSortChange} />
       <div className="container mx-auto px-4 py-8 max-w-[1400px]">
         <MembersGrid searchQuery={searchQuery} viewMode={viewMode} sortBy={sortBy} />
