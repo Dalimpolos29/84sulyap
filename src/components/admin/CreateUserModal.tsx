@@ -343,7 +343,6 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
               >
                 <option value="Alumni">Alumni</option>
                 <option value="Officer">Officer</option>
-                <option value="Super Admin">Super Admin</option>
               </select>
               <label className="block text-sm text-gray-600 font-serif mb-1">
                 Role
