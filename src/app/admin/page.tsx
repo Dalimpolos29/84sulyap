@@ -10,6 +10,8 @@ import { useProfileContext } from '@/contexts/ProfileContext'
 import { Loader2, Users, UserPlus, Shield } from 'lucide-react'
 import CreateUserModal from '@/components/admin/CreateUserModal'
 import EditUserModal from '@/components/admin/EditUserModal'
+import AnnouncementsTab from '@/components/admin/AnnouncementsTab'
+import EventsTab from '@/components/admin/EventsTab'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -22,6 +24,7 @@ export default function AdminPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [resettingPassword, setResettingPassword] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'users' | 'announcements' | 'events'>('users')
 
   const supabase = createClient()
 
@@ -111,32 +114,71 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
+      {/* Header with Tabs */}
       <div className="bg-white rounded shadow-sm p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-7 w-7 text-[#7D1A1D]" />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
-                Admin Panel
-              </h1>
-              <p className="text-gray-600 text-sm font-serif">
-                Manage alumni accounts and permissions
-              </p>
-            </div>
+        <div className="flex items-center gap-3 mb-4">
+          <Shield className="h-7 w-7 text-[#7D1A1D]" />
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
+              Admin Panel
+            </h1>
+            <p className="text-gray-600 text-sm font-serif">
+              Manage alumni accounts and permissions
+            </p>
           </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-6 border-b border-gray-200">
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 bg-[#7D1A1D] text-white px-4 py-2 rounded hover:bg-[#6a1518] transition-colors"
+            onClick={() => setActiveTab('users')}
+            className={`pb-3 px-1 font-serif font-medium transition-colors ${
+              activeTab === 'users'
+                ? 'text-[#7D1A1D] border-b-2 border-[#7D1A1D]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            <UserPlus className="h-5 w-5" />
-            <span className="hidden sm:inline">Add User</span>
+            Users
+          </button>
+          <button
+            onClick={() => setActiveTab('announcements')}
+            className={`pb-3 px-1 font-serif font-medium transition-colors ${
+              activeTab === 'announcements'
+                ? 'text-[#7D1A1D] border-b-2 border-[#7D1A1D]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Announcements
+          </button>
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`pb-3 px-1 font-serif font-medium transition-colors ${
+              activeTab === 'events'
+                ? 'text-[#7D1A1D] border-b-2 border-[#7D1A1D]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Events
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+      {/* Users Tab */}
+      {activeTab === 'users' && (
+        <>
+          {/* Add User Button */}
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 bg-[#7D1A1D] text-white px-4 py-2 rounded hover:bg-[#6a1518] transition-colors"
+            >
+              <UserPlus className="h-5 w-5" />
+              <span className="hidden sm:inline">Add User</span>
+            </button>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
         <div className="bg-white rounded shadow-sm p-3">
           <div className="flex items-center justify-between">
             <div>
@@ -292,6 +334,14 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+        </>
+      )}
+
+      {/* Announcements Tab */}
+      {activeTab === 'announcements' && <AnnouncementsTab />}
+
+      {/* Events Tab */}
+      {activeTab === 'events' && <EventsTab />}
 
       {/* Create User Modal */}
       <CreateUserModal
