@@ -49,15 +49,45 @@ export function useProfile(user: User | null): UseProfileReturn {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const supabase = createClient()
-  
-  const fetchProfile = async () => {
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) {
+        setLoading(false)
+        return
+      }
+
+      setLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+
+        if (error) {
+          throw error
+        }
+
+        setProfile(data as Profile)
+      } catch (error: any) {
+        console.error('Error fetching profile:', error)
+        setError(error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [user?.id])
+
+  const refetch = async () => {
     if (!user?.id) {
-      setLoading(false)
       return
     }
-    
+
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -65,11 +95,11 @@ export function useProfile(user: User | null): UseProfileReturn {
         .select('*')
         .eq('id', user.id)
         .single()
-      
+
       if (error) {
         throw error
       }
-      
+
       setProfile(data as Profile)
     } catch (error: any) {
       console.error('Error fetching profile:', error)
@@ -78,16 +108,12 @@ export function useProfile(user: User | null): UseProfileReturn {
       setLoading(false)
     }
   }
-  
-  useEffect(() => {
-    fetchProfile()
-  }, [user?.id])
-  
+
   return {
     profile,
     loading,
     error,
-    refetch: fetchProfile,
+    refetch,
     setProfile
   }
 }
