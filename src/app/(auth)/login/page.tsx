@@ -78,15 +78,21 @@ export default function LoginPage() {
 
     try {
       // Step 1: Look up username to get email
+      console.log('Looking up username:', username.toLowerCase().trim())
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('email, account_status')
         .eq('username', username.toLowerCase().trim())
         .single()
 
+      console.log('Profile lookup result:', { profileData, profileError })
+
       if (profileError || !profileData) {
+        console.error('Profile lookup failed:', profileError)
         throw new Error("Invalid username or password")
       }
+
+      console.log('Found email:', profileData.email, 'Status:', profileData.account_status)
 
       // Check account status
       if (profileData.account_status === 'Inactive') {
@@ -98,14 +104,18 @@ export default function LoginPage() {
       }
 
       // Step 2: Use email to authenticate with Supabase
+      console.log('Attempting auth with email:', profileData.email)
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: profileData.email,
         password,
       })
 
       if (authError) {
+        console.error('Auth failed:', authError)
         throw new Error("Invalid username or password")
       }
+
+      console.log('Authentication successful!')
 
       setSuccess("Login successful")
 
