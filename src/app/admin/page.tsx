@@ -9,6 +9,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useProfileContext } from '@/contexts/ProfileContext'
 import { Loader2, Users, UserPlus, Shield } from 'lucide-react'
 import CreateUserModal from '@/components/admin/CreateUserModal'
+import EditUserModal from '@/components/admin/EditUserModal'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -18,6 +19,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [resettingPassword, setResettingPassword] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -49,6 +53,41 @@ export default function AdminPage() {
       console.error('Error loading users:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleEdit = (user: any) => {
+    setSelectedUser(user)
+    setShowEditModal(true)
+  }
+
+  const handleResetPassword = async (user: any) => {
+    if (!confirm(`Reset password for ${user.first_name} ${user.last_name}?\n\nPassword will be reset to: upis1984\nUser will be required to change it on next login.`)) {
+      return
+    }
+
+    setResettingPassword(user.id)
+
+    try {
+      const response = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reset password')
+      }
+
+      alert('Password reset successfully!\n\nNew password: upis1984\nUser will be required to change it on next login.')
+      loadUsers()
+    } catch (error: any) {
+      console.error('Reset password error:', error)
+      alert('Error: ' + error.message)
+    } finally {
+      setResettingPassword(null)
     }
   }
 
@@ -219,11 +258,25 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-[#7D1A1D] hover:text-[#6a1518] mr-3">
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="text-[#7D1A1D] hover:text-[#6a1518] mr-3"
+                      >
                         Edit
                       </button>
-                      <button className="text-blue-600 hover:text-blue-900">
-                        Reset Password
+                      <button
+                        onClick={() => handleResetPassword(user)}
+                        disabled={resettingPassword === user.id}
+                        className="text-blue-600 hover:text-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {resettingPassword === user.id ? (
+                          <span className="flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Resetting...
+                          </span>
+                        ) : (
+                          'Reset Password'
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -247,6 +300,19 @@ export default function AdminPage() {
         onSuccess={() => {
           loadUsers() // Reload user list
         }}
+      />
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false)
+          setSelectedUser(null)
+        }}
+        onSuccess={() => {
+          loadUsers() // Reload user list
+        }}
+        user={selectedUser}
       />
     </div>
   )
