@@ -69,13 +69,13 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
     setSuccess('')
 
     // Validate required fields
-    if (!firstName || !lastName || !email) {
-      setError('First name, last name, and email are required')
+    if (!firstName || !lastName) {
+      setError('First name and last name are required')
       return
     }
 
-    // Validate email format
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Email is optional but validate format if provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address')
       return
     }
@@ -95,12 +95,15 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         throw new Error(`Username "${username}" already exists. Please use a different name.`)
       }
 
-      // Create auth user via server action (auto-confirmed)
+      // Create auth user via Admin API (auto-confirmed)
+      // Use real email if provided, otherwise use dummy email
+      const authEmail = email || `${username}@84sulyap.local`
+
       const response = await fetch('/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
+          email: authEmail,
           password: 'upis1984',
           firstName,
           lastName
@@ -316,7 +319,6 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
                   "block w-full px-3 py-2 text-black bg-white border rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] transition-all",
                   emailFocused || email ? "border-[#7D1A1D]" : "border-gray-300"
                 )}
-                required
               />
               <label
                 htmlFor="email"
@@ -327,7 +329,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
                     : "top-2.5"
                 )}
               >
-                Email *
+                Email (optional)
               </label>
             </div>
 
