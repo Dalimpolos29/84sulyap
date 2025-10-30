@@ -20,6 +20,9 @@ export default function EventsPage() {
   const loadEvents = async () => {
     setLoading(true)
     try {
+      // Get today's date for filtering
+      const today = new Date().toISOString().split('T')[0]
+
       const { data, error } = await supabase
         .from('events')
         .select(`
@@ -27,6 +30,7 @@ export default function EventsPage() {
           profiles!events_created_by_fkey(first_name, last_name),
           contact_person:profiles!events_contact_person_id_fkey(first_name, last_name, email)
         `)
+        .gte('event_date', today) // Only future/today events
         .order('event_date', { ascending: true })
 
       if (error) throw error
@@ -104,165 +108,185 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-[#7D1A1D] font-serif mb-2">
-          Upcoming Events
-        </h1>
-        <p className="text-gray-600 font-serif">
-          Join us for alumni gatherings, reunions, and special occasions
-        </p>
+      <div className="bg-white border-b border-gray-200 py-4 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
+            Upcoming Events
+          </h1>
+          <p className="text-gray-600 font-serif text-sm mt-1">
+            Join us for alumni gatherings, reunions, and special occasions
+          </p>
+        </div>
       </div>
 
-      {/* Events Grid */}
-      {events.length === 0 ? (
-        <div className="bg-white rounded shadow-sm p-12 text-center">
-          <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 font-serif">No upcoming events at the moment</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {events.map((event) => {
-            const eventDate = new Date(event.event_date)
-            const isPast = eventDate < new Date()
-            const regDeadline = event.registration_deadline ? new Date(event.registration_deadline) : null
-            const regClosed = regDeadline && regDeadline < new Date()
+      {/* Events List */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {events.length === 0 ? (
+          <div className="bg-white rounded shadow-sm p-12 text-center">
+            <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 font-serif">No upcoming events at the moment</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {events.map((event) => {
+              const eventDate = new Date(event.event_date)
+              const regDeadline = event.registration_deadline ? new Date(event.registration_deadline) : null
+              const regClosed = regDeadline && regDeadline < new Date()
 
-            return (
-              <div
-                key={event.id}
-                className={`bg-white rounded shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''}`}
-              >
-                {/* Cover Image */}
-                {event.image_url && (
-                  <img
-                    src={event.image_url}
-                    alt={event.title}
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-
-                <div className="p-4">
-                  {/* Title */}
-                  <h2 className="text-xl font-bold text-gray-900 font-serif mb-2">
-                    {event.title}
-                  </h2>
-
-                  {/* Description */}
-                  <p className="text-gray-700 text-sm mb-4">
-                    {event.description}
-                  </p>
-
-                  {/* Event Details */}
-                  <div className="space-y-2 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-[#7D1A1D]" />
-                      <span>
-                        {eventDate.toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                    {event.event_time && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-[#7D1A1D]" />
-                        <span>{event.event_time}</span>
+              return (
+                <div
+                  key={event.id}
+                  className="bg-white rounded shadow-sm overflow-hidden"
+                >
+                  <div className="flex flex-col md:flex-row">
+                    {/* Image - Left */}
+                    {event.image_url && (
+                      <div className="md:w-64 md:flex-shrink-0">
+                        <img
+                          src={event.image_url}
+                          alt={event.title}
+                          className="w-full h-48 md:h-full object-cover"
+                        />
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-[#7D1A1D]" />
-                      <span>{event.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-[#7D1A1D]" />
-                      <span className="font-medium">{event.cost}</span>
+
+                    {/* Content - Right */}
+                    <div className="flex-1 p-4 md:p-6">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        {/* Main Content */}
+                        <div className="flex-1">
+                          {/* Title */}
+                          <h2 className="text-xl md:text-2xl font-bold text-gray-900 font-serif mb-2">
+                            {event.title}
+                          </h2>
+
+                          {/* Description */}
+                          <p className="text-gray-700 mb-4">
+                            {event.description}
+                          </p>
+
+                          {/* Event Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-[#7D1A1D] flex-shrink-0" />
+                              <span>
+                                {eventDate.toLocaleDateString('en-US', {
+                                  weekday: 'long',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                            {event.event_time && (
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-[#7D1A1D] flex-shrink-0" />
+                                <span>{event.event_time}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-[#7D1A1D] flex-shrink-0" />
+                              <span>{event.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4 text-[#7D1A1D] flex-shrink-0" />
+                              <span className="font-medium text-[#7D1A1D]">{event.cost}</span>
+                            </div>
+                          </div>
+
+                          {/* RSVP Counts */}
+                          <div className="flex items-center gap-3 text-xs text-gray-600">
+                            <Users className="h-4 w-4" />
+                            <span className="font-medium text-[#7D1A1D]">
+                              ✓ {event.rsvp_counts?.going_count || 0} Going
+                            </span>
+                            <span className="font-medium text-[#9d5a5c]">
+                              ? {event.rsvp_counts?.maybe_count || 0} Maybe
+                            </span>
+                            {event.max_attendees && (
+                              <span className="text-gray-500">
+                                / {event.max_attendees} max
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* RSVP Buttons - Right */}
+                        <div className="md:w-48 flex md:flex-col gap-2">
+                          {!regClosed && profile ? (
+                            <>
+                              <button
+                                onClick={() => handleRSVP(event.id, 'going')}
+                                disabled={rsvpLoading === event.id}
+                                className={`flex-1 py-2 px-4 rounded text-sm font-medium transition-colors ${
+                                  event.user_rsvp === 'going'
+                                    ? 'bg-[#7D1A1D] text-white'
+                                    : 'bg-[#f5e6e7] text-[#7D1A1D] hover:bg-[#ead5d6] border border-[#7D1A1D]'
+                                }`}
+                              >
+                                {rsvpLoading === event.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                ) : (
+                                  'Going'
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleRSVP(event.id, 'maybe')}
+                                disabled={rsvpLoading === event.id}
+                                className={`flex-1 py-2 px-4 rounded text-sm font-medium transition-colors ${
+                                  event.user_rsvp === 'maybe'
+                                    ? 'bg-[#9d5a5c] text-white'
+                                    : 'bg-[#f5eded] text-[#9d5a5c] hover:bg-[#ede0e0] border border-[#9d5a5c]'
+                                }`}
+                              >
+                                Maybe
+                              </button>
+                              <button
+                                onClick={() => handleRSVP(event.id, 'not_going')}
+                                disabled={rsvpLoading === event.id}
+                                className={`flex-1 py-2 px-4 rounded text-sm font-medium transition-colors ${
+                                  event.user_rsvp === 'not_going'
+                                    ? 'bg-gray-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                                }`}
+                              >
+                                Can't Go
+                              </button>
+                            </>
+                          ) : regClosed && !profile ? (
+                            <div className="text-center text-sm py-2">
+                              <div className="text-red-600 font-medium mb-1">Registration Closed</div>
+                              <div className="text-gray-500 text-xs">Login to see details</div>
+                            </div>
+                          ) : regClosed ? (
+                            <div className="text-center text-red-600 text-sm font-medium py-2">
+                              Registration Closed
+                            </div>
+                          ) : (
+                            <div className="text-center text-gray-500 text-sm py-2">
+                              Login to RSVP
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Contact Person */}
+                      {event.contact_person && (
+                        <div className="text-xs text-gray-500 mt-4 pt-4 border-t">
+                          For questions, contact: {event.contact_person.first_name} {event.contact_person.last_name}
+                          {event.contact_person.email && ` (${event.contact_person.email})`}
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* RSVP Counts */}
-                  <div className="flex items-center gap-3 text-xs text-gray-600 mb-4 pb-4 border-b">
-                    <Users className="h-4 w-4" />
-                    <span className="text-green-600 font-medium">✓ {event.rsvp_counts?.going_count || 0} Going</span>
-                    <span className="text-yellow-600 font-medium">? {event.rsvp_counts?.maybe_count || 0} Maybe</span>
-                    {event.max_attendees && (
-                      <span className="text-gray-500">
-                        / {event.max_attendees} max
-                      </span>
-                    )}
-                  </div>
-
-                  {/* RSVP Buttons */}
-                  {!isPast && !regClosed && profile && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleRSVP(event.id, 'going')}
-                        disabled={rsvpLoading === event.id}
-                        className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                          event.user_rsvp === 'going'
-                            ? 'bg-green-600 text-white'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
-                      >
-                        {rsvpLoading === event.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                        ) : (
-                          'Going'
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleRSVP(event.id, 'maybe')}
-                        disabled={rsvpLoading === event.id}
-                        className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                          event.user_rsvp === 'maybe'
-                            ? 'bg-yellow-600 text-white'
-                            : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                        }`}
-                      >
-                        Maybe
-                      </button>
-                      <button
-                        onClick={() => handleRSVP(event.id, 'not_going')}
-                        disabled={rsvpLoading === event.id}
-                        className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                          event.user_rsvp === 'not_going'
-                            ? 'bg-gray-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Can't Go
-                      </button>
-                    </div>
-                  )}
-
-                  {regClosed && !isPast && (
-                    <div className="text-center text-red-600 text-sm font-medium py-2">
-                      Registration Closed
-                    </div>
-                  )}
-
-                  {isPast && (
-                    <div className="text-center text-gray-500 text-sm font-medium py-2">
-                      Event Ended
-                    </div>
-                  )}
-
-                  {/* Contact Person */}
-                  {event.contact_person && (
-                    <div className="text-xs text-gray-500 mt-3 pt-3 border-t">
-                      For questions, contact: {event.contact_person.first_name} {event.contact_person.last_name}
-                      {event.contact_person.email && ` (${event.contact_person.email})`}
-                    </div>
-                  )}
                 </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

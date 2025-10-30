@@ -5,12 +5,14 @@ import { createClient } from '@/utils/supabase/client'
 import { Loader2, Plus, Pencil, Trash2, Calendar, MapPin } from 'lucide-react'
 import CreateEventModal from './CreateEventModal'
 import EditEventModal from './EditEventModal'
+import ViewAttendeesModal from './ViewAttendeesModal'
 
 export default function EventsTab() {
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
@@ -202,6 +204,16 @@ export default function EventsTab() {
                       <button
                         onClick={() => {
                           setSelectedEvent(event)
+                          setShowAttendeesModal(true)
+                        }}
+                        className="p-2 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 transition-colors"
+                        title="View Attendees"
+                      >
+                        <MapPin className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedEvent(event)
                           setShowEditModal(true)
                         }}
                         className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
@@ -245,6 +257,15 @@ export default function EventsTab() {
         }}
         onSuccess={() => {
           loadEvents()
+        }}
+        event={selectedEvent}
+      />
+
+      <ViewAttendeesModal
+        isOpen={showAttendeesModal}
+        onClose={() => {
+          setShowAttendeesModal(false)
+          setSelectedEvent(null)
         }}
         event={selectedEvent}
       />
