@@ -332,7 +332,7 @@ export default function EventsPage() {
                       disabled={rsvpLoading}
                       className={`w-full py-2.5 px-4 rounded-md text-sm font-bold transition-all ${
                         featuredEvent.user_rsvp === 'going'
-                          ? 'bg-[#7D1A1D] text-white shadow-lg scale-105 ring-2 ring-[#7D1A1D] ring-offset-2'
+                          ? 'bg-[#7D1A1D] text-white shadow-lg ring-2 ring-[#7D1A1D]'
                           : 'bg-white text-[#7D1A1D] border-2 border-[#7D1A1D]/30 hover:border-[#7D1A1D] hover:bg-[#fff5f5]'
                       }`}
                     >
@@ -343,7 +343,7 @@ export default function EventsPage() {
                       disabled={rsvpLoading}
                       className={`w-full py-2.5 px-4 rounded-md text-sm font-bold transition-all ${
                         featuredEvent.user_rsvp === 'maybe'
-                          ? 'bg-[#0B5A28] text-white shadow-lg scale-105 ring-2 ring-[#0B5A28] ring-offset-2'
+                          ? 'bg-[#0B5A28] text-white shadow-lg ring-2 ring-[#0B5A28]'
                           : 'bg-white text-[#0B5A28] border-2 border-[#0B5A28]/30 hover:border-[#0B5A28] hover:bg-[#f0f9f4]'
                       }`}
                     >
@@ -354,7 +354,7 @@ export default function EventsPage() {
                       disabled={rsvpLoading}
                       className={`w-full py-2.5 px-4 rounded-md text-sm font-bold transition-all ${
                         featuredEvent.user_rsvp === 'not_going'
-                          ? 'bg-gray-700 text-white shadow-lg scale-105 ring-2 ring-gray-700 ring-offset-2'
+                          ? 'bg-gray-700 text-white shadow-lg ring-2 ring-gray-700'
                           : 'bg-white text-gray-600 border-2 border-gray-300 hover:border-gray-500 hover:bg-gray-50'
                       }`}
                     >
@@ -381,7 +381,7 @@ export default function EventsPage() {
             <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-[#7D1A1D] font-serif mb-3 md:mb-4">
               Other Upcoming Events
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
               {otherUpcomingEvents.map((event) => {
                 const date = new Date(event.event_date)
                 return (
@@ -394,10 +394,10 @@ export default function EventsPage() {
                       <img
                         src={event.image_url}
                         alt={event.title}
-                        className="w-full h-32 sm:h-40 object-cover"
+                        className="w-full h-24 md:h-32 lg:h-40 object-cover"
                       />
                     )}
-                    <div className="p-3 md:p-4">
+                    <div className="p-2 md:p-3">
                       <h3 className="font-bold text-[#7D1A1D] font-serif mb-2 line-clamp-2 text-sm md:text-base">
                         {event.title}
                       </h3>
@@ -423,7 +423,7 @@ export default function EventsPage() {
             <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-600 font-serif mb-3 md:mb-4">
               Past Events
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
               {pastEvents.map((event) => {
                 const date = new Date(event.event_date)
                 return (
@@ -436,10 +436,10 @@ export default function EventsPage() {
                       <img
                         src={event.image_url}
                         alt={event.title}
-                        className="w-full h-32 sm:h-40 object-cover grayscale-[30%]"
+                        className="w-full h-24 md:h-32 lg:h-40 object-cover grayscale-[30%]"
                       />
                     )}
-                    <div className="p-3 md:p-4">
+                    <div className="p-2 md:p-3">
                       <h3 className="font-bold text-gray-700 font-serif mb-2 line-clamp-2 text-sm md:text-base">
                         {event.title}
                       </h3>
