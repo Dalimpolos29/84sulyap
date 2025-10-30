@@ -110,7 +110,7 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 py-4 px-4 md:px-6">
+      <div className="bg-stone-50 border-b border-stone-200 py-4 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
             Upcoming Events
@@ -124,7 +124,7 @@ export default function EventsPage() {
       {/* Events List */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
         {events.length === 0 ? (
-          <div className="bg-white rounded shadow-sm p-12 text-center">
+          <div className="bg-stone-50 rounded-lg shadow-sm p-12 text-center">
             <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 font-serif">No upcoming events at the moment</p>
           </div>
@@ -138,7 +138,7 @@ export default function EventsPage() {
               return (
                 <div
                   key={event.id}
-                  className="bg-white rounded shadow-sm overflow-hidden"
+                  className="bg-stone-50 rounded-lg shadow-sm overflow-hidden"
                 >
                   <div className="flex flex-col md:flex-row">
                     {/* Image - Left */}

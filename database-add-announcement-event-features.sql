@@ -37,12 +37,20 @@ CREATE INDEX IF NOT EXISTS idx_announcements_expires_at ON announcements(expires
 ALTER TABLE event_rsvps ENABLE ROW LEVEL SECURITY;
 
 -- 6. RLS Policies for event_rsvps
--- Drop existing policies if they exist (for re-running the migration)
-DROP POLICY IF EXISTS "Anyone can view event RSVPs" ON event_rsvps;
-DROP POLICY IF EXISTS "Users can manage own RSVPs" ON event_rsvps;
-DROP POLICY IF EXISTS "Users can insert own RSVPs" ON event_rsvps;
-DROP POLICY IF EXISTS "Users can update own RSVPs" ON event_rsvps;
-DROP POLICY IF EXISTS "Users can delete own RSVPs" ON event_rsvps;
+-- Drop ALL existing policy variations (for re-running the migration)
+DO $$
+BEGIN
+  -- Drop all possible policy variations
+  DROP POLICY IF EXISTS "Anyone can view event RSVPs" ON event_rsvps;
+  DROP POLICY IF EXISTS "Users can manage own RSVPs" ON event_rsvps;
+  DROP POLICY IF EXISTS "Users can insert own RSVPs" ON event_rsvps;
+  DROP POLICY IF EXISTS "Users can update own RSVPs" ON event_rsvps;
+  DROP POLICY IF EXISTS "Users can delete own RSVPs" ON event_rsvps;
+EXCEPTION
+  WHEN undefined_table THEN
+    -- Table doesn't exist yet, that's fine
+    NULL;
+END $$;
 
 -- Anyone can view RSVPs
 CREATE POLICY "Anyone can view event RSVPs"
