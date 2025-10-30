@@ -37,16 +37,31 @@ CREATE INDEX IF NOT EXISTS idx_announcements_expires_at ON announcements(expires
 ALTER TABLE event_rsvps ENABLE ROW LEVEL SECURITY;
 
 -- 6. RLS Policies for event_rsvps
+-- Drop existing policies if they exist (for re-running the migration)
+DROP POLICY IF EXISTS "Anyone can view event RSVPs" ON event_rsvps;
+DROP POLICY IF EXISTS "Users can manage own RSVPs" ON event_rsvps;
+DROP POLICY IF EXISTS "Users can insert own RSVPs" ON event_rsvps;
+DROP POLICY IF EXISTS "Users can update own RSVPs" ON event_rsvps;
+DROP POLICY IF EXISTS "Users can delete own RSVPs" ON event_rsvps;
+
 -- Anyone can view RSVPs
 CREATE POLICY "Anyone can view event RSVPs"
   ON event_rsvps FOR SELECT
   USING (true);
 
--- Users can create/update their own RSVPs
-CREATE POLICY "Users can manage own RSVPs"
-  ON event_rsvps FOR ALL
+-- Users can create/update/delete their own RSVPs (split for proper update support)
+CREATE POLICY "Users can insert own RSVPs"
+  ON event_rsvps FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own RSVPs"
+  ON event_rsvps FOR UPDATE
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own RSVPs"
+  ON event_rsvps FOR DELETE
+  USING (auth.uid() = user_id);
 
 -- 7. Create function to get RSVP counts
 CREATE OR REPLACE FUNCTION public.get_event_rsvp_counts(event_id_input UUID)
