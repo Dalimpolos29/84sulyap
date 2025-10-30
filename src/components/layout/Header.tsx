@@ -208,7 +208,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile Header */}
+            {/* Mobile Header - Simple */}
             <div className="md:hidden flex items-center justify-between py-3">
               <Link href="/" className="flex items-center gap-2">
                 <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[#C9A335]">
@@ -217,28 +217,21 @@ export default function Header() {
                 <span className="font-serif font-bold text-base">UPIS '84</span>
               </Link>
 
-              <div className="flex items-center gap-3">
-                {/* User Avatar */}
-                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="relative">
-                  {profile?.profile_picture_url ? (
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-[#C9A335]">
-                      <Image src={profile.profile_picture_url} alt={fullName} width={32} height={32} className="object-cover" />
-                    </div>
-                  ) : (
-                    <div className="bg-white rounded-full w-8 h-8 flex items-center justify-center text-[#7D1A1D] font-serif text-xs font-bold border border-[#C9A335]">
-                      {initials}
-                    </div>
-                  )}
-                </button>
-
-                {/* Mobile Menu Button */}
-                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white">
-                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-              </div>
+              {/* User Avatar Only */}
+              <button onClick={() => setDropdownOpen(!dropdownOpen)} className="relative">
+                {profile?.profile_picture_url ? (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-[#C9A335]">
+                    <Image src={profile.profile_picture_url} alt={fullName} width={32} height={32} className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-full w-8 h-8 flex items-center justify-center text-[#7D1A1D] font-serif text-xs font-bold border border-[#C9A335]">
+                    {initials}
+                  </div>
+                )}
+              </button>
 
               {/* User Dropdown - Mobile */}
-              <div ref={dropdownRef} className={`absolute right-4 top-14 w-56 bg-white rounded-md shadow-lg overflow-hidden transition-all duration-200 ${dropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}>
+              <div ref={dropdownRef} className={`absolute right-4 top-14 w-56 bg-white rounded-md shadow-lg overflow-hidden transition-all duration-200 z-50 ${dropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}>
                 <div className="p-2">
                   <div className="px-4 py-2 text-[#7D1A1D] font-medium border-b border-gray-200">{fullName}</div>
                   <div className="pt-2">
@@ -265,23 +258,72 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile Menu */}
-            <div className={`md:hidden overflow-hidden transition-all duration-300 ${mobileMenuOpen ? 'max-h-96' : 'max-h-0'}`}>
-              <nav className="pb-3 space-y-1">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
-                      item.current ? 'bg-white/20 text-white' : 'text-white/90 hover:bg-white/10'
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </div>
+            {/* Mobile Menu Button - Floating Below Logo */}
+            {isAuthenticated && (
+              <>
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#7D1A1D] rounded-full shadow-lg flex items-center justify-center text-white z-50 hover:bg-[#5d1316] transition-all"
+                >
+                  {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+
+                {/* Mobile Sidebar - Slides from Right */}
+                <div
+                  className={`md:hidden fixed top-0 right-0 h-full w-72 bg-[#7D1A1D] shadow-2xl transform transition-transform duration-300 ease-in-out z-40 ${
+                    mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                  }`}
+                >
+                  <div className="flex flex-col h-full pt-20 px-4">
+                    {/* Navigation Links */}
+                    <nav className="flex-1 space-y-2">
+                      {navItems.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                            item.current
+                              ? 'bg-white/20 text-white shadow-md'
+                              : 'text-white/90 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          <item.icon className="w-5 h-5" />
+                          {item.name}
+                        </Link>
+                      ))}
+                    </nav>
+
+                    {/* User Info at Bottom */}
+                    <div className="border-t border-white/20 pt-4 pb-6">
+                      <div className="flex items-center gap-3 px-4 py-2 text-white">
+                        {profile?.profile_picture_url ? (
+                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#C9A335]">
+                            <Image src={profile.profile_picture_url} alt={fullName} width={40} height={40} className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center text-[#7D1A1D] font-serif text-sm font-bold border-2 border-[#C9A335]">
+                            {initials}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{fullName}</p>
+                          <p className="text-xs text-white/70 truncate">{profile?.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overlay */}
+                {mobileMenuOpen && (
+                  <div
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="md:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-sm"
+                  />
+                )}
+              </>
+            )}
           </>
         )}
       </div>

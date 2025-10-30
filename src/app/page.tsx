@@ -5,12 +5,27 @@
 
 import { useRouter } from 'next/navigation'
 import { useProfileContext } from '@/contexts/ProfileContext'
+import { useState, useEffect } from 'react'
+import WelcomeHero from '@/components/common/WelcomeHero'
 
 export default function DashboardPage() {
   const { profile, loading: profileLoading, fullName } = useProfileContext()
   const router = useRouter()
+  const [showHero, setShowHero] = useState(false)
+
+  useEffect(() => {
+    // Show hero only on first visit in this session
+    const heroShown = sessionStorage.getItem('welcomeHeroShown')
+    if (!heroShown && fullName) {
+      setShowHero(true)
+      sessionStorage.setItem('welcomeHeroShown', 'true')
+    }
+  }, [fullName])
 
   return (
+    <>
+      {showHero && <WelcomeHero userName={fullName} />}
+
     <div className="flex items-start justify-center py-12 px-4 font-serif">
       <div className="max-w-4xl w-full">
         <div className="bg-white bg-opacity-95 rounded-lg shadow-md overflow-hidden">
@@ -76,12 +91,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
-
-{/* Add text-shadow utility class */}
-<style jsx global>{`
-  .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-`}</style>

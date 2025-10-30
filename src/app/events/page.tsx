@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useProfileContext } from '@/contexts/ProfileContext'
-import { Loader2, Calendar, MapPin, Users, DollarSign, Clock, Mail, Download } from 'lucide-react'
+import { Loader2, Calendar, MapPin, Users, DollarSign, Clock, Mail, Download, Image as ImageIcon } from 'lucide-react'
 
 export default function EventsPage() {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
@@ -203,6 +203,8 @@ export default function EventsPage() {
   }
 
   const eventDate = featuredEvent ? new Date(featuredEvent.event_date) : null
+  const today = new Date().toISOString().split('T')[0]
+  const isPastEvent = featuredEvent?.event_date < today
   const regDeadline = featuredEvent?.registration_deadline ? new Date(featuredEvent.registration_deadline) : null
   const regClosed = regDeadline && regDeadline < new Date()
   const otherUpcomingEvents = upcomingEvents.filter(e => e.id !== featuredEvent?.id)
@@ -302,8 +304,24 @@ export default function EventsPage() {
                   </span>
                 </div>
 
-                {/* RSVP Buttons - Enhanced Visibility */}
-                {!regClosed && profile ? (
+                {/* RSVP Buttons or Past Event Info */}
+                {isPastEvent ? (
+                  <div className="space-y-3">
+                    <div className="text-center py-3 bg-gray-50 rounded-md border border-gray-300">
+                      <Users className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                      <p className="text-sm font-semibold text-gray-700">
+                        {featuredEvent.rsvp_counts?.going_count || 0} people attended
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => alert('Photo gallery feature coming soon!')}
+                      className="w-full py-2.5 px-4 rounded-md text-sm font-medium bg-[#0B5A28] text-white hover:bg-[#094620] transition-all flex items-center justify-center gap-2"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                      View Photos
+                    </button>
+                  </div>
+                ) : !regClosed && profile ? (
                   <div className="space-y-2">
                     <button
                       onClick={() => handleRSVP(featuredEvent.id, 'going')}
