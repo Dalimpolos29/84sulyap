@@ -469,21 +469,24 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   // Handle cropped image upload
   const handleCroppedImageUpload = async (croppedBlob: Blob) => {
     if (!activeProfile) return
-    
+
     try {
       setUploadingPhoto(true)
-      
+
+      // Store old profile picture URL for cleanup after successful upload
+      const oldProfilePictureUrl = activeProfile.profile_picture_url
+
       // Create user folder name - use fullName or fallback to user ID if no name available
       const userFolderName = fullName.replace(/\s+/g, '_') || activeProfile.id
-      
+
       // Create a unique file name
       const fileName = `${Date.now()}.jpeg`
-      
+
       // Use user-specific folder structure
       const filePath = `${userFolderName}/profile/${fileName}`
-      
+
       console.log("Uploading to:", filePath)
-      
+
       // Upload the file to Supabase Storage
       const { data, error: uploadError } = await supabase.storage
         .from('profile-pictures')
@@ -492,38 +495,64 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
           upsert: true,
           contentType: 'image/jpeg'
         })
-      
+
       if (uploadError) {
         console.error("Upload error details:", uploadError)
         throw uploadError
       }
-      
+
       console.log("Upload successful:", data)
-      
+
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(filePath)
-      
+
       console.log("Public URL:", publicUrl)
-      
+
+      // Delete old profile picture from storage (only if upload succeeded and old picture exists)
+      if (oldProfilePictureUrl) {
+        try {
+          // Extract file path from the public URL
+          const urlParts = oldProfilePictureUrl.split('/profile-pictures/')
+          if (urlParts.length > 1) {
+            const oldFilePath = urlParts[1]
+            console.log("Deleting old profile picture:", oldFilePath)
+
+            const { error: deleteError } = await supabase.storage
+              .from('profile-pictures')
+              .remove([oldFilePath])
+
+            if (deleteError) {
+              console.error("Error deleting old profile picture:", deleteError)
+              // Don't throw - we still want to update the profile with new picture
+            } else {
+              console.log("Old profile picture deleted successfully")
+            }
+          }
+        } catch (deleteErr) {
+          console.error("Error during old profile picture cleanup:", deleteErr)
+          // Don't throw - we still want to update the profile with new picture
+        }
+      }
+
       // Update the profile with the new URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ profile_picture_url: publicUrl })
         .eq('id', activeProfile.id)
-      
+
       if (updateError) {
         console.error("Profile update error:", updateError)
         throw updateError
       }
-      
+
       // Refresh the profile data
       await refetchProfile()
-      
+
       // Clear the selected image
       setSelectedImage(null)
-      
+
     } catch (error) {
       console.error('Error uploading photo:', error)
       alert('Failed to upload photo. Please try again.')
@@ -763,16 +792,16 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8 text-[#7D1A1D]">
-      {/* Compact Header Section */}
-      <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md p-4 mb-6">
-        <div className="flex items-center gap-4">
-          {/* Small Profile Photo */}
-          <div className="relative w-20 h-20 flex-shrink-0">
+      {/* Compact Header Section - Centered */}
+      <div className="max-w-3xl mx-auto mb-4 relative pt-16">
+        <div className="bg-white bg-opacity-95 border border-[#006633] rounded-lg shadow-md p-4 relative">
+          {/* Large Profile Photo - Overflowing Top */}
+          <div className="absolute left-8 -top-16 w-32 h-32 flex-shrink-0">
             {activeProfile?.profile_picture_url ? (
               <>
                 <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
                 <div
-                  className="absolute inset-[4px] rounded-full overflow-hidden z-10 shadow-lg cursor-pointer"
+                  className="absolute inset-[4px] rounded-full overflow-hidden z-10 shadow-xl cursor-pointer border-4 border-white"
                   onClick={() => setIsProfileLightboxOpen(true)}
                 >
                   <Image
@@ -787,10 +816,10 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
                   <div className="absolute z-30 right-0 bottom-0">
                     <button
                       onClick={handleUploadClick}
-                      className="bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 shadow-lg"
+                      className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
                       aria-label="Change profile picture"
                     >
-                      <Camera size={14} className="text-[#7D1A1D]" />
+                      <Camera size={16} className="text-[#7D1A1D]" />
                     </button>
                   </div>
                 )}
@@ -798,17 +827,17 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
             ) : (
               <>
                 <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
-                <div className="absolute inset-[4px] rounded-full overflow-hidden z-10 shadow-lg bg-gray-200 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-[#7D1A1D]">{activeProfileInitials}</span>
+                <div className="absolute inset-[4px] rounded-full overflow-hidden z-10 shadow-xl bg-gray-200 flex items-center justify-center border-4 border-white">
+                  <span className="text-3xl font-bold text-[#7D1A1D]">{activeProfileInitials}</span>
                 </div>
                 {isOwnProfile && (
                   <div className="absolute z-30 right-0 bottom-0">
                     <button
                       onClick={handleUploadClick}
-                      className="bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 shadow-lg"
+                      className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg"
                       aria-label="Add profile picture"
                     >
-                      <Camera size={14} className="text-[#7D1A1D]" />
+                      <Camera size={16} className="text-[#7D1A1D]" />
                     </button>
                   </div>
                 )}
@@ -816,8 +845,8 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
             )}
           </div>
 
-          {/* Name, Badge, Sections */}
-          <div className="flex-1 min-w-0">
+          {/* Name, Badge, Sections - Offset for profile picture */}
+          <div className="ml-40 min-w-0">
             <h1 className="text-2xl font-bold text-[#7D1A1D] truncate">
               {isViewMode ? viewedProfile?.first_name + ' ' + viewedProfile?.last_name : displayName}
             </h1>
@@ -904,11 +933,11 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Left Sidebar - Tabs + Featured Photos */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-3">
           {/* Tabbed Info Section */}
-          <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white bg-opacity-95 border border-[#006633] rounded-lg shadow-md overflow-hidden">
             {/* Tab Headers */}
             <div className="flex border-b border-gray-200">
               <button
@@ -1384,7 +1413,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 
           {/* Featured Photos Section */}
           {activeProfile && (
-            <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white bg-opacity-95 border border-[#006633] rounded-lg shadow-md overflow-hidden">
               <FeaturedPhotos
                 userId={activeProfile.id}
                 userFolderName={fullName.replace(/\s+/g, '_') || activeProfile.id}
@@ -1397,7 +1426,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 
         {/* Right Column - Timeline */}
         <div className="lg:col-span-2">
-          <div className="bg-white bg-opacity-95 border-2 border-[#006633] rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white bg-opacity-95 border border-[#006633] rounded-lg shadow-md overflow-hidden">
             {/* Post Creator */}
             {isOwnProfile && (
               <div className="p-4 border-b border-gray-200">

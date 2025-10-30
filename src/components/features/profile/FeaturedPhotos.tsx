@@ -150,8 +150,16 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
   const uploadAllPhotos = async () => {
     setIsUploading(true);
     setUploadError(null);
-    
+
     try {
+      // Store old photo URLs for cleanup after successful upload
+      const oldPhotoUrls: string[] = [];
+      if (featuredPhotos) {
+        if (featuredPhotos.f1_url) oldPhotoUrls.push(featuredPhotos.f1_url);
+        if (featuredPhotos.f2_url) oldPhotoUrls.push(featuredPhotos.f2_url);
+        if (featuredPhotos.f3_url) oldPhotoUrls.push(featuredPhotos.f3_url);
+      }
+
       // Initialize all fields as null first
       const photoUrls: Record<string, string | null> = {
         f1_url: null,
@@ -163,7 +171,10 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
         f2_caption: null,
         f3_caption: null
       };
-      
+
+      // Track which old photos to delete (only those being replaced)
+      const photosToDelete: string[] = [];
+
       // Prepare optimistic update data with all fields nulled first
       const optimisticPhotos: FeaturedPhotosData = {
         ...(featuredPhotos || {
@@ -180,14 +191,15 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
         f3_caption: null,
         updated_at: new Date().toISOString()
       };
-      
+
       // If there are selected photos, process them
       if (selectedPhotos.length > 0) {
         // Process each photo
       for (let i = 0; i < selectedPhotos.length; i++) {
           const photo = selectedPhotos[i];
           const fieldIndex = i + 1;
-          
+          const oldUrlKey = `f${fieldIndex}_url` as keyof FeaturedPhotosData;
+
           // Skip if it's an existing photo URL (not a new file)
           if (photo.preview.startsWith('http')) {
             photoUrls[`f${fieldIndex}_url`] = photo.preview;
@@ -197,12 +209,17 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             (optimisticPhotos as any)[`f${fieldIndex}_caption`] = photo.caption || null;
             continue;
           }
-          
+
+          // This is a new file upload - mark old photo for deletion
+          if (featuredPhotos && featuredPhotos[oldUrlKey]) {
+            photosToDelete.push(featuredPhotos[oldUrlKey] as string);
+          }
+
           // Only upload if it's a real file (not a placeholder)
           if (photo.file.size > 0) {
             const fileName = `${Date.now()}_${i}.jpeg`;
             const filePath = `${userFolderName}/featured/${fileName}`;
-        
+
         // Upload the file
         const { data, error: uploadError } = await supabase.storage
           .from('profile-pictures')
@@ -210,14 +227,14 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             cacheControl: '3600',
             upsert: false
               });
-        
+
             if (uploadError) throw uploadError;
-        
+
         // Get the public URL
         const { data: { publicUrl } } = supabase.storage
           .from('profile-pictures')
               .getPublicUrl(filePath);
-        
+
         // Store URL and caption
             photoUrls[`f${fieldIndex}_url`] = publicUrl;
             photoCaptions[`f${fieldIndex}_caption`] = photo.caption || null;
@@ -250,7 +267,7 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             updated_at: new Date().toISOString()
           })
           .eq('user_id', userId);
-        
+
         if (updateError) throw updateError;
       } else {
         // Insert new record
@@ -261,17 +278,45 @@ export default function FeaturedPhotos({ userId, userFolderName, isOwnProfile, o
             ...photoUrls,
             ...photoCaptions
           });
-        
+
         if (insertError) throw insertError;
       }
-      
+
+      // Delete old photos from storage (only those that were replaced)
+      if (photosToDelete.length > 0) {
+        for (const oldUrl of photosToDelete) {
+          try {
+            // Extract file path from the public URL
+            const urlParts = oldUrl.split('/profile-pictures/');
+            if (urlParts.length > 1) {
+              const oldFilePath = urlParts[1];
+              console.log("Deleting old featured photo:", oldFilePath);
+
+              const { error: deleteError } = await supabase.storage
+                .from('profile-pictures')
+                .remove([oldFilePath]);
+
+              if (deleteError) {
+                console.error("Error deleting old featured photo:", deleteError);
+                // Don't throw - we still want to complete the upload process
+              } else {
+                console.log("Old featured photo deleted successfully");
+              }
+            }
+          } catch (deleteErr) {
+            console.error("Error during old featured photo cleanup:", deleteErr);
+            // Don't throw - we still want to complete the upload process
+          }
+        }
+      }
+
       // Success - clean up preview URLs
       selectedPhotos.forEach(photo => {
         if (!photo.preview.startsWith('http')) {
           URL.revokeObjectURL(photo.preview);
         }
       });
-      
+
       setUploadComplete(true);
       
     } catch (err: any) {
