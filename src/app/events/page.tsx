@@ -85,6 +85,8 @@ export default function EventsPage() {
           user_id: profile.id,
           response,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'event_id,user_id'
         })
 
       if (error) throw error
@@ -110,7 +112,7 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-stone-50 border-b border-stone-200 py-4 px-4 md:px-6">
+      <div className="bg-white/60 backdrop-blur-sm border-b border-gray-200 py-4 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
             Upcoming Events
@@ -124,7 +126,7 @@ export default function EventsPage() {
       {/* Events List */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
         {events.length === 0 ? (
-          <div className="bg-stone-50 rounded-lg shadow-sm p-12 text-center">
+          <div className="border border-gray-200 rounded-lg p-12 text-center bg-white/80 backdrop-blur-sm">
             <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 font-serif">No upcoming events at the moment</p>
           </div>
@@ -138,7 +140,7 @@ export default function EventsPage() {
               return (
                 <div
                   key={event.id}
-                  className="bg-stone-50 rounded-lg shadow-sm overflow-hidden"
+                  className="border border-gray-200 rounded-lg overflow-hidden"
                 >
                   <div className="flex flex-col md:flex-row">
                     {/* Image - Left */}
@@ -153,7 +155,7 @@ export default function EventsPage() {
                     )}
 
                     {/* Content - Right */}
-                    <div className="flex-1 p-4 md:p-6">
+                    <div className="flex-1 p-4 md:p-6 bg-white/80 backdrop-blur-sm">
                       <div className="flex flex-col md:flex-row gap-4">
                         {/* Main Content */}
                         <div className="flex-1">
