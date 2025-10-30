@@ -110,25 +110,22 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white/60 backdrop-blur-sm border-b border-gray-200 py-4 px-4 md:px-6">
+    <div className="min-h-screen">
+      {/* Header - Smaller and nostalgic */}
+      <div className="bg-[#7D1A1D] py-3 px-4 md:px-6 shadow-md">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#7D1A1D] font-serif">
+          <h1 className="text-xl md:text-2xl font-bold text-white font-serif">
             Upcoming Events
           </h1>
-          <p className="text-gray-600 font-serif text-sm mt-1">
-            Join us for alumni gatherings, reunions, and special occasions
-          </p>
         </div>
       </div>
 
       {/* Events List */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
         {events.length === 0 ? (
-          <div className="border border-gray-200 rounded-lg p-12 text-center bg-white/80 backdrop-blur-sm">
-            <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 font-serif">No upcoming events at the moment</p>
+          <div className="bg-[#F5F1E8] border-2 border-[#7D1A1D]/20 rounded-lg p-12 text-center shadow-md">
+            <Calendar className="h-16 w-16 text-[#7D1A1D]/30 mx-auto mb-4" />
+            <p className="text-gray-700 font-serif">No upcoming events at the moment</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -140,7 +137,7 @@ export default function EventsPage() {
               return (
                 <div
                   key={event.id}
-                  className="border border-gray-200 rounded-lg overflow-hidden"
+                  className="bg-[#F5F1E8] border-2 border-[#7D1A1D]/20 rounded-lg overflow-hidden shadow-md"
                 >
                   <div className="flex flex-col md:flex-row">
                     {/* Image - Left */}
@@ -155,22 +152,22 @@ export default function EventsPage() {
                     )}
 
                     {/* Content - Right */}
-                    <div className="flex-1 p-4 md:p-6 bg-white/80 backdrop-blur-sm">
+                    <div className="flex-1 p-4 md:p-6">
                       <div className="flex flex-col md:flex-row gap-4">
                         {/* Main Content */}
                         <div className="flex-1">
                           {/* Title */}
-                          <h2 className="text-xl md:text-2xl font-bold text-gray-900 font-serif mb-2">
+                          <h2 className="text-xl md:text-2xl font-bold text-[#7D1A1D] font-serif mb-2">
                             {event.title}
                           </h2>
 
                           {/* Description */}
-                          <p className="text-gray-700 mb-4">
+                          <p className="text-gray-800 mb-4">
                             {event.description}
                           </p>
 
                           {/* Event Details */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700 mb-4">
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-[#7D1A1D] flex-shrink-0" />
                               <span>
@@ -199,7 +196,7 @@ export default function EventsPage() {
                           </div>
 
                           {/* RSVP Counts */}
-                          <div className="flex items-center gap-3 text-xs text-gray-600">
+                          <div className="flex items-center gap-3 text-xs text-gray-700">
                             <Users className="h-4 w-4" />
                             <span className="font-medium text-[#7D1A1D]">
                               ✓ {event.rsvp_counts?.going_count || 0} Going
@@ -208,7 +205,7 @@ export default function EventsPage() {
                               ? {event.rsvp_counts?.maybe_count || 0} Maybe
                             </span>
                             {event.max_attendees && (
-                              <span className="text-gray-500">
+                              <span className="text-gray-600">
                                 / {event.max_attendees} max
                               </span>
                             )}
@@ -259,15 +256,15 @@ export default function EventsPage() {
                             </>
                           ) : regClosed && !profile ? (
                             <div className="text-center text-sm py-2">
-                              <div className="text-red-600 font-medium mb-1">Registration Closed</div>
-                              <div className="text-gray-500 text-xs">Login to see details</div>
+                              <div className="text-red-700 font-medium mb-1">Registration Closed</div>
+                              <div className="text-gray-600 text-xs">Login to see details</div>
                             </div>
                           ) : regClosed ? (
-                            <div className="text-center text-red-600 text-sm font-medium py-2">
+                            <div className="text-center text-red-700 text-sm font-medium py-2">
                               Registration Closed
                             </div>
                           ) : (
-                            <div className="text-center text-gray-500 text-sm py-2">
+                            <div className="text-center text-gray-700 text-sm py-2">
                               Login to RSVP
                             </div>
                           )}
@@ -276,7 +273,7 @@ export default function EventsPage() {
 
                       {/* Contact Person */}
                       {event.contact_person && (
-                        <div className="text-xs text-gray-500 mt-4 pt-4 border-t">
+                        <div className="text-xs text-gray-700 mt-4 pt-4 border-t border-[#7D1A1D]/20">
                           For questions, contact: {event.contact_person.first_name} {event.contact_person.last_name}
                           {event.contact_person.email && ` (${event.contact_person.email})`}
                         </div>
