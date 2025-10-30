@@ -228,11 +228,11 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen py-4 md:py-6">
-      <div className="space-y-6 md:space-y-8">
+      <div className="container mx-auto px-4 max-w-[1400px] space-y-6 md:space-y-8">
 
         {/* Featured Event - New Layout with Image Overlay */}
         {featuredEvent && (
-          <div className="bg-[#F5F1E8] overflow-hidden shadow-lg border-y-2 md:border-2 md:rounded-lg border-[#0B5A28]/20">
+          <div className="bg-[#F5F1E8] overflow-hidden shadow-lg border-2 rounded-lg border-[#0B5A28]/20">
             {/* Featured Badge at Top */}
             <div className="bg-gradient-to-r from-[#7D1A1D] to-[#5d1316] text-white px-4 md:px-6 py-2 font-serif font-bold text-sm md:text-base flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -417,7 +417,7 @@ export default function EventsPage() {
 
         {/* Other Upcoming Events - Thumbnail Grid */}
         {otherUpcomingEvents.length > 0 && (
-          <div className="px-4">
+          <div>
             <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-[#7D1A1D] font-serif mb-3 md:mb-4">
               Other Upcoming Events
             </h2>
@@ -460,7 +460,7 @@ export default function EventsPage() {
 
         {/* Past Events Section */}
         {pastEvents.length > 0 && (
-          <div className="px-4">
+          <div>
             <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-600 font-serif mb-3 md:mb-4">
               Past Events
             </h2>
