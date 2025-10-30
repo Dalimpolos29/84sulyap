@@ -219,7 +219,7 @@ export default function Header() {
 
               <div className="flex items-center gap-3">
                 {/* User Avatar */}
-                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="relative" ref={dropdownRef}>
+                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="relative">
                   {profile?.profile_picture_url ? (
                     <div className="w-8 h-8 rounded-full overflow-hidden border border-[#C9A335]">
                       <Image src={profile.profile_picture_url} alt={fullName} width={32} height={32} className="object-cover" />
@@ -238,7 +238,7 @@ export default function Header() {
               </div>
 
               {/* User Dropdown - Mobile */}
-              <div className={`absolute right-4 top-14 w-56 bg-white rounded-md shadow-lg overflow-hidden transition-all duration-200 ${dropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}>
+              <div ref={dropdownRef} className={`absolute right-4 top-14 w-56 bg-white rounded-md shadow-lg overflow-hidden transition-all duration-200 ${dropdownOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}>
                 <div className="p-2">
                   <div className="px-4 py-2 text-[#7D1A1D] font-medium border-b border-gray-200">{fullName}</div>
                   <div className="pt-2">
