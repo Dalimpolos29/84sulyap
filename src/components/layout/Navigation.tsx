@@ -51,12 +51,7 @@ export default function Navigation() {
       name: 'Events',
       href: '/events',
       icon: Calendar,
-      current: pathname === '/events',
-      dropdown: [
-        { name: 'Upcoming', href: '/events/upcoming' },
-        { name: 'Past Events', href: '/events/past' },
-        { name: 'Calendar', href: '/events/calendar' }
-      ]
+      current: pathname === '/events'
     },
     {
       name: 'Gallery',

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Loader2, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import ImageUpload from '@/components/common/ImageUpload'
 
 interface CreateEventModalProps {
   isOpen: boolean
@@ -196,19 +197,12 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
             </div>
 
             {/* Cover Image */}
-            <div>
-              <label className="block text-sm text-gray-600 font-serif mb-1">
-                Cover Image URL (optional)
-              </label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/event-banner.jpg"
-                className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
-              />
-              <p className="text-xs text-gray-500 mt-1">Recommended: 1200x630px</p>
-            </div>
+            <ImageUpload
+              value={imageUrl}
+              onChange={setImageUrl}
+              bucket="event-images"
+              label="Cover Image (optional)"
+            />
 
             {/* Registration Deadline and Cost */}
             <div className="grid grid-cols-2 gap-3">
