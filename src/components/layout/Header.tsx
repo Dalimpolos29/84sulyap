@@ -57,6 +57,7 @@ export default function Header() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    sessionStorage.removeItem('welcomeHeroShown') // Clear hero flag on logout
     router.push('/login')
     router.refresh()
   }
@@ -258,7 +259,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile Menu Button - Floating Below Logo */}
+            {/* Mobile Menu Button - Floating */}
             {isAuthenticated && (
               <>
                 <button
@@ -268,15 +269,30 @@ export default function Header() {
                   {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
 
-                {/* Mobile Sidebar - Slides from Right */}
+                {/* Mobile Sidebar - Slides from LEFT */}
                 <div
-                  className={`md:hidden fixed top-0 right-0 h-full w-72 bg-[#7D1A1D] shadow-2xl transform transition-transform duration-300 ease-in-out z-40 ${
-                    mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                  className={`md:hidden fixed top-0 left-0 h-full w-72 bg-[#7D1A1D] shadow-2xl transform transition-transform duration-300 ease-in-out z-40 ${
+                    mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                   }`}
                 >
-                  <div className="flex flex-col h-full pt-20 px-4">
+                  <div className="flex flex-col h-full">
+                    {/* Logo at Top */}
+                    <div className="flex items-center gap-2 px-6 py-4 border-b border-white/20">
+                      <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#C9A335]">
+                        <Image
+                          src="/images/logo.svg"
+                          alt="UPIS 84 Logo"
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
+                          priority
+                        />
+                      </div>
+                      <span className="font-serif font-bold text-lg text-white">UPIS '84</span>
+                    </div>
+
                     {/* Navigation Links */}
-                    <nav className="flex-1 space-y-2">
+                    <nav className="flex-1 space-y-2 px-4 pt-6">
                       {navItems.map((item) => (
                         <Link
                           key={item.name}
@@ -295,7 +311,7 @@ export default function Header() {
                     </nav>
 
                     {/* User Info at Bottom */}
-                    <div className="border-t border-white/20 pt-4 pb-6">
+                    <div className="border-t border-white/20 pt-4 pb-6 px-4">
                       <div className="flex items-center gap-3 px-4 py-2 text-white">
                         {profile?.profile_picture_url ? (
                           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#C9A335]">

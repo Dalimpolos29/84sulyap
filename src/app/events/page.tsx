@@ -222,14 +222,14 @@ export default function EventsPage() {
               Featured Event
             </div>
 
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row md:h-[500px]">
               {/* Image - 70% */}
               {featuredEvent.image_url && (
-                <div className="md:w-[70%]">
+                <div className="md:w-[70%] h-56 sm:h-64 md:h-full">
                   <img
                     src={featuredEvent.image_url}
                     alt={featuredEvent.title}
-                    className="w-full h-56 sm:h-64 md:h-[500px] object-cover"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
@@ -284,25 +284,29 @@ export default function EventsPage() {
                   )}
                 </div>
 
-                {/* Add to Calendar Button */}
-                <button
-                  onClick={() => generateICS(featuredEvent)}
-                  className="w-full py-2 px-4 mb-3 rounded-md text-xs md:text-sm font-medium bg-white text-[#0B5A28] border-2 border-[#0B5A28] hover:bg-[#0B5A28] hover:text-white transition-all flex items-center justify-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Add to Calendar
-                </button>
+                {/* Add to Calendar Button - Only for upcoming events */}
+                {!isPastEvent && (
+                  <button
+                    onClick={() => generateICS(featuredEvent)}
+                    className="w-full py-2 px-4 mb-3 rounded-md text-xs md:text-sm font-medium bg-white text-[#0B5A28] border-2 border-[#0B5A28] hover:bg-[#0B5A28] hover:text-white transition-all flex items-center justify-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Add to Calendar
+                  </button>
+                )}
 
-                {/* RSVP Count */}
-                <div className="flex items-center gap-3 text-xs mb-3 md:mb-4 pb-3 md:pb-4 border-b border-[#0B5A28]/20">
-                  <Users className="h-4 w-4 text-gray-700" />
-                  <span className="font-semibold text-[#7D1A1D]">
-                    {featuredEvent.rsvp_counts?.going_count || 0} Going
-                  </span>
-                  <span className="font-semibold text-[#0B5A28]">
-                    {featuredEvent.rsvp_counts?.maybe_count || 0} Maybe
-                  </span>
-                </div>
+                {/* RSVP Count - Only for upcoming events */}
+                {!isPastEvent && (
+                  <div className="flex items-center gap-3 text-xs mb-3 md:mb-4 pb-3 md:pb-4 border-b border-[#0B5A28]/20">
+                    <Users className="h-4 w-4 text-gray-700" />
+                    <span className="font-semibold text-[#7D1A1D]">
+                      {featuredEvent.rsvp_counts?.going_count || 0} Going
+                    </span>
+                    <span className="font-semibold text-[#0B5A28]">
+                      {featuredEvent.rsvp_counts?.maybe_count || 0} Maybe
+                    </span>
+                  </div>
+                )}
 
                 {/* RSVP Buttons or Past Event Info */}
                 {isPastEvent ? (
