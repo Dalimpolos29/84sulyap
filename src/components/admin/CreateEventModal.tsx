@@ -19,6 +19,9 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
   const [eventTime, setEventTime] = useState('')
   const [location, setLocation] = useState('')
   const [maxAttendees, setMaxAttendees] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [registrationDeadline, setRegistrationDeadline] = useState('')
+  const [cost, setCost] = useState('Free')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -54,6 +57,10 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
           event_time: eventTime || null,
           location,
           max_attendees: maxAttendees ? parseInt(maxAttendees) : null,
+          image_url: imageUrl || null,
+          registration_deadline: registrationDeadline || null,
+          cost: cost || 'Free',
+          contact_person_id: user.id, // Default to creator as contact
           created_by: user.id
         })
 
@@ -68,6 +75,9 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
         setEventTime('')
         setLocation('')
         setMaxAttendees('')
+        setImageUrl('')
+        setRegistrationDeadline('')
+        setCost('Free')
         setSuccess('')
         onSuccess()
         onClose()
@@ -183,6 +193,48 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
                 className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
                 required
               />
+            </div>
+
+            {/* Cover Image */}
+            <div>
+              <label className="block text-sm text-gray-600 font-serif mb-1">
+                Cover Image URL (optional)
+              </label>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/event-banner.jpg"
+                className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+              />
+              <p className="text-xs text-gray-500 mt-1">Recommended: 1200x630px</p>
+            </div>
+
+            {/* Registration Deadline and Cost */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm text-gray-600 font-serif mb-1">
+                  Registration Deadline (optional)
+                </label>
+                <input
+                  type="date"
+                  value={registrationDeadline}
+                  onChange={(e) => setRegistrationDeadline(e.target.value)}
+                  className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 font-serif mb-1">
+                  Cost
+                </label>
+                <input
+                  type="text"
+                  value={cost}
+                  onChange={(e) => setCost(e.target.value)}
+                  placeholder="Free or ₱500"
+                  className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+                />
+              </div>
             </div>
 
             {/* Max Attendees */}

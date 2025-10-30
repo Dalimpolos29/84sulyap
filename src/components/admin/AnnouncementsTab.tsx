@@ -116,6 +116,15 @@ export default function AnnouncementsTab() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
+                  {/* Cover Image */}
+                  {announcement.image_url && (
+                    <img
+                      src={announcement.image_url}
+                      alt={announcement.title}
+                      className="w-full h-48 object-cover rounded mb-3"
+                    />
+                  )}
+
                   <div className="flex items-center gap-2 mb-2">
                     {announcement.pinned && (
                       <Pin className="h-4 w-4 text-[#7D1A1D]" />
@@ -132,6 +141,39 @@ export default function AnnouncementsTab() {
                   <p className="text-gray-700 whitespace-pre-wrap mb-3">
                     {announcement.content}
                   </p>
+
+                  {/* CTA Button */}
+                  {announcement.cta_text && announcement.cta_link && (
+                    <a
+                      href={announcement.cta_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-[#7D1A1D] text-white px-4 py-2 rounded hover:bg-[#6a1518] transition-colors text-sm font-medium mb-3"
+                    >
+                      {announcement.cta_text}
+                    </a>
+                  )}
+
+                  {/* Attachments */}
+                  {announcement.attachments && announcement.attachments.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-sm text-gray-600 font-medium mb-1">Attachments:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {announcement.attachments.map((url: string, index: number) => (
+                          <a
+                            key={index}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Attachment {index + 1}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span>
                       By {announcement.profiles?.first_name} {announcement.profiles?.last_name}
@@ -144,6 +186,18 @@ export default function AnnouncementsTab() {
                         year: 'numeric'
                       })}
                     </span>
+                    {announcement.expires_at && (
+                      <>
+                        <span>•</span>
+                        <span className="text-orange-600">
+                          Expires: {new Date(announcement.expires_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 

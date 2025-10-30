@@ -17,6 +17,11 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSuccess }: 
   const [content, setContent] = useState('')
   const [priority, setPriority] = useState<'normal' | 'high'>('normal')
   const [pinned, setPinned] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
+  const [ctaText, setCtaText] = useState('')
+  const [ctaLink, setCtaLink] = useState('')
+  const [attachments, setAttachments] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -43,6 +48,11 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSuccess }: 
         throw new Error('User not authenticated')
       }
 
+      // Parse attachments (comma-separated URLs)
+      const attachmentsArray = attachments
+        ? attachments.split(',').map(url => url.trim()).filter(url => url)
+        : null
+
       const { error: insertError } = await supabase
         .from('announcements')
         .insert({
@@ -50,6 +60,11 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSuccess }: 
           content,
           priority,
           pinned,
+          image_url: imageUrl || null,
+          expires_at: expiresAt || null,
+          cta_text: ctaText || null,
+          cta_link: ctaLink || null,
+          attachments: attachmentsArray,
           created_by: user.id
         })
 
@@ -62,6 +77,11 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSuccess }: 
         setContent('')
         setPriority('normal')
         setPinned(false)
+        setImageUrl('')
+        setExpiresAt('')
+        setCtaText('')
+        setCtaLink('')
+        setAttachments('')
         setSuccess('')
         onSuccess()
         onClose()
@@ -135,6 +155,78 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSuccess }: 
                 className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D] resize-none"
                 required
               />
+            </div>
+
+            {/* Image URL */}
+            <div>
+              <label className="block text-sm text-gray-600 font-serif mb-1">
+                Cover Image URL (optional)
+              </label>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+              />
+              <p className="text-xs text-gray-500 mt-1">Recommended: 1200x630px</p>
+            </div>
+
+            {/* Expiration Date */}
+            <div>
+              <label className="block text-sm text-gray-600 font-serif mb-1">
+                Expiration Date (optional)
+              </label>
+              <input
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+              />
+              <p className="text-xs text-gray-500 mt-1">Announcement will auto-archive after this date</p>
+            </div>
+
+            {/* Call to Action */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm text-gray-600 font-serif mb-1">
+                  CTA Button Text (optional)
+                </label>
+                <input
+                  type="text"
+                  value={ctaText}
+                  onChange={(e) => setCtaText(e.target.value)}
+                  placeholder="e.g., Register Now"
+                  className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 font-serif mb-1">
+                  CTA Link (optional)
+                </label>
+                <input
+                  type="url"
+                  value={ctaLink}
+                  onChange={(e) => setCtaLink(e.target.value)}
+                  placeholder="https://..."
+                  className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+                />
+              </div>
+            </div>
+
+            {/* Attachments */}
+            <div>
+              <label className="block text-sm text-gray-600 font-serif mb-1">
+                Attachments (optional)
+              </label>
+              <input
+                type="text"
+                value={attachments}
+                onChange={(e) => setAttachments(e.target.value)}
+                placeholder="https://file1.pdf, https://file2.pdf"
+                className="block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#7D1A1D]"
+              />
+              <p className="text-xs text-gray-500 mt-1">Comma-separated file URLs</p>
             </div>
 
             {/* Priority */}
