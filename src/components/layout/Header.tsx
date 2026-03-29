@@ -58,7 +58,7 @@ export default function Header() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     sessionStorage.removeItem('welcomeHeroShown') // Clear hero flag on logout
-    router.push('/login')
+    router.push('/landing')
     router.refresh()
   }
 

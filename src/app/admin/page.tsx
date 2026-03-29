@@ -12,6 +12,7 @@ import CreateUserModal from '@/components/admin/CreateUserModal'
 import EditUserModal from '@/components/admin/EditUserModal'
 import AnnouncementsTab from '@/components/admin/AnnouncementsTab'
 import EventsTab from '@/components/admin/EventsTab'
+import YearbookUpload from '@/components/admin/YearbookUpload'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -24,7 +25,7 @@ export default function AdminPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [resettingPassword, setResettingPassword] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'users' | 'announcements' | 'events'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'announcements' | 'events' | 'yearbook'>('users')
 
   const supabase = createClient()
 
@@ -159,6 +160,16 @@ export default function AdminPage() {
             }`}
           >
             Events
+          </button>
+          <button
+            onClick={() => setActiveTab('yearbook')}
+            className={`pb-3 px-1 font-serif font-medium transition-colors ${
+              activeTab === 'yearbook'
+                ? 'text-[#7D1A1D] border-b-2 border-[#7D1A1D]'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Digital Sulyap
           </button>
         </div>
       </div>
@@ -342,6 +353,9 @@ export default function AdminPage() {
 
       {/* Events Tab */}
       {activeTab === 'events' && <EventsTab />}
+
+      {/* Yearbook Tab */}
+      {activeTab === 'yearbook' && <YearbookUpload />}
 
       {/* Create User Modal */}
       <CreateUserModal

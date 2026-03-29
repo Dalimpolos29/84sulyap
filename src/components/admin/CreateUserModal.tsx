@@ -95,8 +95,24 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
         throw new Error(`Username "${username}" already exists. Please use a different name.`)
       }
 
+      // Check if email already exists (if email is provided)
+      if (email) {
+        const { data: existingProfiles, error: emailCheckError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle()
+
+        if (emailCheckError) throw emailCheckError
+
+        if (existingProfiles) {
+          throw new Error(`Email "${email}" is already registered. Please use a different email or leave it blank.`)
+        }
+      }
+
       // Create auth user via Admin API (auto-confirmed)
-      // Use real email if provided, otherwise use dummy email
+      // Auth system requires email, so use dummy email if not provided
+      // Real email will be saved to profile table only if provided (line 130)
       const authEmail = email || `${username}@84sulyap.local`
 
       const response = await fetch('/api/admin/create-user', {

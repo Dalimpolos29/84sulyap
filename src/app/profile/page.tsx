@@ -146,6 +146,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingSections, setEditingSections] = useState(false)
   const [editData, setEditData] = useState({
+    bio: '',
     profession: '',
     company: '',
     email: '',
@@ -314,6 +315,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   useEffect(() => {
     if (activeProfile && !isViewMode) {
       setEditData({
+        bio: activeProfile.bio || '',
         profession: activeProfile.profession || '',
         company: activeProfile.company || '',
         email: activeProfile.email || '',
@@ -327,7 +329,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
         section_4th_year: activeProfile.section_4th_year || '',
         address: activeProfile.address || ''
       })
-      
+
       // Set selected hobbies
       setSelectedHobbies(parseHobbies(activeProfile.hobbies_interests))
     }
@@ -352,6 +354,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
       const formattedHobbies = formatHobbies(selectedHobbies);
 
       const updatedData = {
+        bio: editData.bio,
         profession: editData.profession,
         company: editData.company,
         email: editData.email,
@@ -434,6 +437,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   const handleCancelEdit = () => {
     if (activeProfile) {
       setEditData({
+        bio: activeProfile.bio || '',
         profession: activeProfile.profession || '',
         company: activeProfile.company || '',
         email: activeProfile.email || '',
@@ -580,10 +584,11 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   };
 
   const cancelEditingSections = () => {
-    // Reset section values to original
+    // Reset section and bio values to original
     if (activeProfile) {
       setEditData(prev => ({
         ...prev,
+        bio: activeProfile.bio || '',
         section_1st_year: activeProfile.section_1st_year || '',
         section_2nd_year: activeProfile.section_2nd_year || '',
         section_3rd_year: activeProfile.section_3rd_year || '',
@@ -598,10 +603,11 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 
     // Store previous state for potential revert
     const previousProfile = activeProfile;
-    
+
     try {
-      // Prepare section update data
+      // Prepare section and bio update data
       const updatedData = {
+        bio: editData.bio,
         section_1st_year: editData.section_1st_year,
         section_2nd_year: editData.section_2nd_year,
         section_3rd_year: editData.section_3rd_year,
@@ -610,7 +616,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
 
       // --- Optimistic Update ---
       // 1. Update local context immediately
-      setProfile(currentProfile => 
+      setProfile(currentProfile =>
         currentProfile ? { ...currentProfile, ...updatedData } : null
       );
       // 2. Exit section editing mode immediately
@@ -622,19 +628,19 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
         .from('profiles')
         .update(updatedData)
         .eq('id', activeProfile.id);
-  
+
   if (error) {
         throw error;
       }
-      
-      console.log('Section changes updated successfully in database.');
-      
+
+      console.log('Section and bio changes updated successfully in database.');
+
       // 4. Remove full refetch on success
       // await refetchProfile();
 
     } catch (error: any) {
-      console.error('Error saving section changes - reverting UI:', error);
-      
+      console.error('Error saving section and bio changes - reverting UI:', error);
+
       // --- Revert Optimistic Update on Error ---
       // Restore previous profile state in context
       setProfile(previousProfile);
@@ -642,19 +648,20 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
       // setEditingSections(true); // Optional: uncomment to go back to edit mode
       // -----------------------------------------
 
-      alert('Failed to save section changes. Please try again.');
-      
+      alert('Failed to save changes. Please try again.');
+
       // Optional: Call refetchProfile() here if needed after error
       // await refetchProfile();
-    } 
+    }
     // No finally block needed here unless adding a loading state for sections
   };
 
-  // Check if any section has been changed from the original
+  // Check if any section or bio has been changed from the original
   const hasChangedSections = () => {
     if (!activeProfile) return false;
-    
+
     return (
+      editData.bio !== (activeProfile.bio || '') ||
       editData.section_1st_year !== (activeProfile.section_1st_year || '') ||
       editData.section_2nd_year !== (activeProfile.section_2nd_year || '') ||
       editData.section_3rd_year !== (activeProfile.section_3rd_year || '') ||
@@ -793,10 +800,10 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8 text-[#7D1A1D]">
       {/* Compact Header Section - Centered */}
-      <div className="max-w-3xl mx-auto mb-4 relative pt-16">
+      <div className="max-w-3xl mx-auto mb-4 relative pt-20">
         <div className="bg-white bg-opacity-95 border border-[#006633] rounded-lg shadow-md p-4 relative">
           {/* Large Profile Photo - Overflowing Top */}
-          <div className="absolute left-8 -top-16 w-32 h-32 flex-shrink-0">
+          <div className="absolute left-8 -top-20 w-40 h-40 flex-shrink-0">
             {activeProfile?.profile_picture_url ? (
               <>
                 <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
@@ -828,7 +835,7 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
               <>
                 <div className="absolute inset-0 rounded-full bg-[#C9A335] z-0"></div>
                 <div className="absolute inset-[4px] rounded-full overflow-hidden z-10 shadow-xl bg-gray-200 flex items-center justify-center border-4 border-white">
-                  <span className="text-3xl font-bold text-[#7D1A1D]">{activeProfileInitials}</span>
+                  <span className="text-4xl font-bold text-[#7D1A1D]">{activeProfileInitials}</span>
                 </div>
                 {isOwnProfile && (
                   <div className="absolute z-30 right-0 bottom-0">
@@ -845,12 +852,18 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
             )}
           </div>
 
-          {/* Name, Badge, Sections - Offset for profile picture */}
-          <div className="ml-40 min-w-0">
+          {/* Alumni Badge Below Picture */}
+          <div className="absolute left-8 top-24 w-40 flex justify-center z-40">
+            <div className="text-gray-600 text-xs font-medium bg-white px-2 py-0.5 rounded-full border border-gray-300 shadow-sm">Alumni</div>
+          </div>
+
+          {/* Name, Sections - Offset for profile picture */}
+          <div className="ml-48 min-w-0">
             <h1 className="text-2xl font-bold text-[#7D1A1D] truncate">
-              {isViewMode ? viewedProfile?.first_name + ' ' + viewedProfile?.last_name : displayName}
+              {isViewMode
+                ? `${viewedProfile?.first_name} ${viewedProfile?.middle_name ? viewedProfile.middle_name + ' ' : ''}${viewedProfile?.last_name}`
+                : nameWithMiddleInitial}
             </h1>
-            <div className="text-gray-600 text-sm font-medium mb-2">Alumni</div>
 
             {/* Sections Badges */}
             <div className="relative">
@@ -924,6 +937,35 @@ function ProfileContent({ viewProfileId }: { viewProfileId?: string }) {
                     >
                       Edit
                     </button>
+                  )}
+                  {!activeProfile?.section_1st_year && !activeProfile?.section_2nd_year && !activeProfile?.section_3rd_year && !activeProfile?.section_4th_year && !isOwnProfile && (
+                    <span className="text-xs text-transparent">&nbsp;</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Bio Section */}
+            <div className="mt-3">
+              {editingSections ? (
+                <div className="relative">
+                  <textarea
+                    name="bio"
+                    value={editData.bio || ''}
+                    onChange={handleInputChange}
+                    className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[#006633] focus:border-[#006633] rounded px-3 py-2 resize-none"
+                    placeholder="Tell us about yourself..."
+                    rows={2}
+                  />
+                </div>
+              ) : (
+                <div className="text-sm text-gray-700">
+                  {activeProfile?.bio ? (
+                    <p className="whitespace-pre-wrap">{activeProfile.bio}</p>
+                  ) : (
+                    <p className="text-gray-400 italic">
+                      {isOwnProfile ? 'Add a bio to tell people about yourself' : '\u00A0'}
+                    </p>
                   )}
                 </div>
               )}

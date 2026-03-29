@@ -9,7 +9,7 @@
 - ✅ **Events System** - Create, edit, delete events with RSVP (Going/Maybe/Can't Go), past events display, calendar integration
 - ✅ **Profile System** - Upload profile pictures with cropping, edit personal info, privacy toggles (phone/email/address/spouse/children), section badges, hobbies with categories, featured photos
 - ✅ **Members Directory** - View all members, search, filter, grid/list view
-- ✅ **Welcome Hero** - Full-screen animation on login with photo slideshow
+- ~~**Welcome Hero**~~ - Removed (replaced by public landing page)
 - ✅ **Navigation** - Responsive header with mobile sidebar (slides from left)
 
 ### Recent Improvements:
@@ -53,42 +53,61 @@
 7. ✅ Event page container layout - Match members page (max-w-[1400px] centered)
 8. ✅ Hide scrollbars globally - Applied across entire app
 
+### ✅ COMPLETED (Continued):
+9. ✅ Profile redesign - Facebook-style layout with tabs (About/Contact/Family/Hobbies), featured photos, timeline section, bio field, enlarged profile picture, full name display
+10. ✅ Auth protection - All pages require login except /about, /contact, and /verify-email
+11. ✅ About Us page created - Public access with batch history and mission
+12. ✅ Contact page created - Public contact form with categories (General/Technical/Membership)
+
 ### 🔲 PENDING:
-- ⏳ Auth protection - all pages except Contact/About
-- ⏳ Profile redesign - Facebook-style layout with tabs (About/Contact/Family/Hobbies), featured photos, and timeline section
+- None! All immediate fixes completed!
 
 ---
 
 ## 🎯 TIER 1: FOUNDATION & ACCESS (Week 1)
 **Priority: HIGH | Complexity: MEDIUM**
 
-### 1. Public Landing Page
-- Hero page with:
-  - Photo slideshow (dynamic from gallery)
-  - Upcoming events preview
-  - Member count + batch stats
-  - Promoted posts shown as "achievements"
-- Big "Login" button
-- Blocks all pages except Contact/About
-- Mobile responsive
-- **Research:** Alumni landing page best practices
+### ✅ 1. Public Landing Page - COMPLETED
+- ✅ Story-driven layout (Layout 3 - Yale style)
+- ✅ Full-screen hero with BATCH collage GIF background
+- ✅ "THEN" section with Oblation photo + narrative
+- ✅ "NOW" section with animated badge + current narrative
+- ✅ Stats bar (1984, member count, years active)
+- ✅ Upcoming events preview (titles only, no details)
+- ✅ CTA sections with login/contact buttons
+- ✅ Complete footer with links
+- ✅ All media downloaded from Notion page
+- ✅ Mobile responsive design
+- ✅ Redirects non-logged users to /landing instead of /login
+- ✅ No duplicate header (uses existing site navigation)
+- **Note:** Personalized with user's actual media, not generic AI design
 
-### 2. About Page (Public)
-- Batch '84 history/mission
-- Accessible without login
+### ✅ 2. About Page (Public) - COMPLETED
+- ✅ Batch '84 history/mission
+- ✅ Accessible without login
+- ✅ Matches login page branding
 
-### 3. Contact Form (Public)
-- Accessible without login
-- Categories: General, Technical, Membership
-- Send to admin via Zoho mail
-- No file attachments (use links instead)
+### ✅ 3. Contact Form (Public) - COMPLETED
+- ✅ Accessible without login
+- ✅ Categories: General, Technical, Membership
+- ✅ Form UI complete with validation
+- ✅ Matches login page branding
+- ✅ Email sending to sulyap84@dabcas.uk via Zoho SMTP
+- ✅ Saves submissions to database (contact_submissions table)
+- ✅ Error handling and user feedback
+- ✅ Simple text email format
+- **Note:** Admin can view submissions in database, no user confirmation email
 
-### 4. Home Page Feed Redesign
-- **Research:** Best layout for community feed
-- Top priority content TBD (livestream/announcements/posts)
-- Pagination or "Load More" button (not infinite scroll initially)
-- Pinned posts stay visible (placement TBD after research)
-- Mobile: stacked vertical
+### ✅ 4. Home Page Feed Redesign - COMPLETED
+- ✅ Two-column layout (LinkedIn style)
+- ✅ Main feed: Announcements with pinned at top
+- ✅ Sidebar: Stats, upcoming events (next 5), quick links
+- ✅ Pinned announcements shown with gold badge
+- ✅ Full announcement cards with cover images, CTA buttons
+- ✅ Mobile responsive (sidebar stacks on top)
+- ✅ Links to member directory, profile, Digital Sulyap
+- ✅ Shows member count and "Years Strong" stats
+- **Note:** Ready to add Posts/Timeline system when implemented
 
 ---
 

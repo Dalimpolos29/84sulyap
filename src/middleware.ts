@@ -30,22 +30,36 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  // If user is not signed in and the current path is not /login,
-  // redirect the user to /login
-  if (!session && request.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/landing', '/about', '/contact', '/verify-email']
+  const isPublicRoute = publicRoutes.some(route =>
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  // If user is not signed in and trying to access protected route, redirect to landing
+  if (!session && !isPublicRoute) {
+    return NextResponse.redirect(new URL('/landing', request.url))
   }
 
-  // If user is signed in and the current path is /login,
-  // redirect the user to /
-  if (session && request.nextUrl.pathname === '/login') {
+  // If user is signed in and trying to access login or landing page, redirect to home
+  if (session && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/landing')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
   return response
 }
 
-// Ensure middleware runs only on the pages we want it to
+// Run middleware on all routes except static files and API routes
 export const config = {
-  matcher: ['/', '/login']
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 } 

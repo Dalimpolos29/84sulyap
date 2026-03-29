@@ -16,6 +16,7 @@ export type Profile = {
   birthday: string | null
   phone_number: string | null
   address: string | null
+  bio: string | null
   section_3rd_year: string | null
   section_4th_year: string | null
   section_1st_year: string | null
