@@ -7,6 +7,7 @@ import { User } from '@supabase/supabase-js'
 // Define types for profile data
 export type Profile = {
   id: string
+  username: string | null
   first_name: string | null
   middle_name: string | null
   last_name: string | null
@@ -15,6 +16,7 @@ export type Profile = {
   birthday: string | null
   phone_number: string | null
   address: string | null
+  bio: string | null
   section_3rd_year: string | null
   section_4th_year: string | null
   section_1st_year: string | null
@@ -33,7 +35,10 @@ export type Profile = {
     spouse: boolean
     children: boolean
   } | null
-  // Add other profile fields as needed
+  role: string | null
+  account_status: string | null
+  must_change_password: boolean | null
+  created_at: string | null
 }
 
 // Hook return type
@@ -49,15 +54,45 @@ export function useProfile(user: User | null): UseProfileReturn {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const supabase = createClient()
-  
-  const fetchProfile = async () => {
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) {
+        setLoading(false)
+        return
+      }
+
+      setLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+
+        if (error) {
+          throw error
+        }
+
+        setProfile(data as Profile)
+      } catch (error: any) {
+        console.error('Error fetching profile:', error)
+        setError(error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [user?.id])
+
+  const refetch = async () => {
     if (!user?.id) {
-      setLoading(false)
       return
     }
-    
+
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -65,11 +100,11 @@ export function useProfile(user: User | null): UseProfileReturn {
         .select('*')
         .eq('id', user.id)
         .single()
-      
+
       if (error) {
         throw error
       }
-      
+
       setProfile(data as Profile)
     } catch (error: any) {
       console.error('Error fetching profile:', error)
@@ -78,16 +113,12 @@ export function useProfile(user: User | null): UseProfileReturn {
       setLoading(false)
     }
   }
-  
-  useEffect(() => {
-    fetchProfile()
-  }, [user?.id])
-  
+
   return {
     profile,
     loading,
     error,
-    refetch: fetchProfile,
+    refetch,
     setProfile
   }
 }

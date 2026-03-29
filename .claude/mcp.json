@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase-postgres": {
+      "command": "mcp-server-postgres",
+      "args": [
+        "postgresql://postgres:Dabcas_0502@db.bbrjadnmdyqchrnipypp.supabase.co:5432/postgres"
+      ]
+    },
+    "chrome": {
+      "command": "mcp-server-puppeteer",
+      "args": []
+    }
+  }
+}
